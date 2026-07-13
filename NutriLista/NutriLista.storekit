@@ -1,0 +1,86 @@
+{
+  "identifier" : "A1B2C3D4-0000-4000-8000-000000000001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_locale" : "es_MX",
+    "_storefront" : "MEX"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21000001",
+      "localizations" : [
+
+      ],
+      "name" : "NutriLista Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "99.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-0000-4000-8000-000000000002",
+          "introductoryOffer" : {
+            "internalID" : "A1B2C3D4-0000-4000-8000-000000000004",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Escaneos ilimitados y comparador de súpers",
+              "displayName" : "NutriLista Pro Mensual",
+              "locale" : "es_MX"
+            }
+          ],
+          "productID" : "nutrilista.pro.mensual",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Mensual",
+          "subscriptionGroupID" : "21000001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "699.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-0000-4000-8000-000000000003",
+          "introductoryOffer" : {
+            "internalID" : "A1B2C3D4-0000-4000-8000-000000000005",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Escaneos ilimitados y comparador de súpers",
+              "displayName" : "NutriLista Pro Anual",
+              "locale" : "es_MX"
+            }
+          ],
+          "productID" : "nutrilista.pro.anual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro Anual",
+          "subscriptionGroupID" : "21000001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

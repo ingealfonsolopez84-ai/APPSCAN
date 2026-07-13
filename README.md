@@ -1,3 +1,10 @@
+# Apps iOS de este repositorio
+
+- **Escáner 3D (Scan3D)** — digitaliza objetos reales para impresión 3D con la cámara y el LiDAR (este documento).
+- **[NutriLista](NutriLista/README.md)** — convierte la foto del menú de tu nutriólogo en lista de compras, presupuesto y recetario (carpeta `NutriLista/`).
+
+---
+
 # Escáner 3D (Scan3D)
 
 App nativa de iOS que convierte objetos reales en **modelos 3D listos para imprimir**, usando la cámara y el sensor **LiDAR** de los iPhone Pro y Pro Max.
