@@ -6,7 +6,7 @@ Del menú de tu nutriólogo a tu carrito del súper: el usuario le toma **una fo
 
 ```
 iPhone (SwiftUI, iOS 17+)
- ├── Sign in with Apple ──────────► Supabase Auth (JWT, sin contraseñas propias)
+ ├── Correo y contraseña ─────────► Supabase Auth (JWT; en pruebas — Apple para producir)
  ├── Datos del usuario ──────────► PostgreSQL con Row Level Security (cifrado AES-256)
  └── Foto del menú ──────────────► Edge Function scan-menu ──► API de Claude
                                     (la imagen se procesa y se DESCARTA — nunca se guarda)
@@ -14,8 +14,8 @@ iPhone (SwiftUI, iOS 17+)
 
 | Componente | Tecnología |
 |---|---|
-| App | SwiftUI, StoreKit 2, AuthenticationServices, PhotosUI |
-| Autenticación | Sign in with Apple vía Supabase Auth |
+| App | SwiftUI, StoreKit 2, PhotosUI |
+| Autenticación | Correo y contraseña vía Supabase Auth (modo pruebas; funciona con cuenta gratuita de Apple) |
 | Base de datos | PostgreSQL (Supabase) con RLS por usuario |
 | IA de visión | API de Claude (`claude-opus-4-8` por defecto; configurable) con salida estructurada JSON |
 | Servicio web | Supabase Edge Functions (Deno) |
@@ -47,7 +47,7 @@ NutriLista/
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región recomendada: `us-east-1`).
 2. En **SQL Editor**, ejecuta `supabase/migrations/0001_init.sql` y luego `0002_seed_prices.sql`.
-3. En **Authentication → Providers → Apple**, actívalo con tu Services ID y clave de Apple ([guía](https://supabase.com/docs/guides/auth/social-login/auth-apple)).
+3. En **Authentication → Providers → Email**: déjalo activado y, para pruebas, **desactiva "Confirm email"** (así el registro entrega la sesión de inmediato sin tener que confirmar por correo).
 4. Instala la CLI de Supabase y despliega las funciones:
    ```bash
    supabase link --project-ref TU_PROYECTO
@@ -65,9 +65,11 @@ NutriLista/
 
 1. Abre `NutriLista.xcodeproj` con **Xcode 16+**.
 2. En `Support/Config.swift` pega tu **URL de Supabase** y la **anon key** (Dashboard → Settings → API).
-3. En **Signing & Capabilities**: selecciona tu equipo, cambia el bundle ID (debe coincidir con `APP_BUNDLE_ID`) y verifica que la capacidad **Sign in with Apple** esté activa.
+3. En **Signing & Capabilities**: selecciona tu equipo. Con una **cuenta gratuita de Apple** funciona, porque el login es por correo/contraseña (no usa Sign in with Apple). Cambia el bundle ID por uno único, p. ej. `com.tunombre.nutrilista`.
 4. Para probar la suscripción sin App Store Connect: **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration** y elige `NutriLista.storekit`.
-5. Ejecuta (⌘R). El escaneo funciona en simulador usando "Elegir de mis fotos".
+5. Ejecuta (⌘R). Crea una cuenta con tu correo y una contraseña de 6+ caracteres. El escaneo funciona en simulador usando "Elegir de mis fotos", o con la cámara en un iPhone real.
+
+> **Nota:** el login por correo es para pruebas. Para publicar, se recomienda volver a **Sign in with Apple** (requisito de Apple cuando ofreces login social) — el método ya está en `SupabaseClient.signInWithApple`; solo hay que reactivar la capacidad y la pantalla de bienvenida anterior.
 
 ### 3. App Store Connect (para publicar)
 

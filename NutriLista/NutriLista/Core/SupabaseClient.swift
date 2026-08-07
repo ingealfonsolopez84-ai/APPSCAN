@@ -99,6 +99,41 @@ actor SupabaseClient {
         return session.userID
     }
 
+    /// Registro con correo y contraseña.
+    /// Requiere que en Supabase esté DESACTIVADA la confirmación por correo
+    /// (Authentication → Providers → Email → "Confirm email" en off) para que
+    /// devuelva la sesión de inmediato durante las pruebas.
+    func signUpWithEmail(_ email: String, password: String) async throws -> UUID {
+        var request = URLRequest(url: Config.supabaseURL.appendingPathComponent("auth/v1/signup"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "email": email,
+            "password": password,
+        ])
+        let session = try await performAuthRequest(request)
+        persist(session)
+        return session.userID
+    }
+
+    /// Inicio de sesión con correo y contraseña.
+    func signInWithEmail(_ email: String, password: String) async throws -> UUID {
+        var request = URLRequest(url: Config.supabaseURL
+            .appendingPathComponent("auth/v1/token")
+            .appending(queryItems: [.init(name: "grant_type", value: "password")]))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "email": email,
+            "password": password,
+        ])
+        let session = try await performAuthRequest(request)
+        persist(session)
+        return session.userID
+    }
+
     func signOut() {
         persist(nil)
     }
