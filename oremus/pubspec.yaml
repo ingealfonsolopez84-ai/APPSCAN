@@ -1,0 +1,33 @@
+name: oremus
+description: "Oremus — oraciones y rezos católicos, cómo rezar el Rosario, horarios de misa cercanos y momentos de adoración."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  geolocator: ^12.0.0        # ubicación del usuario (iglesias cercanas)
+  url_launcher: ^6.2.6       # abrir Mapas / llamar a la parroquia
+  shared_preferences: ^2.2.3 # favoritos e intenciones guardadas localmente
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+# Genera los íconos de iOS y Android desde assets/icon/icon.png:
+#   flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+  background_color_ios: "#0C122E"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/

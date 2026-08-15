@@ -1,0 +1,495 @@
+<title>Oremus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    /* Página (tema claro por defecto) */
+    --page-bg: #efe9dc;
+    --page-bg-2: #e5ddca;
+    --ink: #2a2418;
+    --ink-soft: #6b6350;
+    --hairline: #d6ccb2;
+    --card: #fbf7ee;
+    /* Marca litúrgica (constante en ambos temas) */
+    --navy: #0c122e;
+    --navy-2: #161f45;
+    --navy-3: #1e2a58;
+    --gold: #e6b45a;
+    --gold-bright: #f4d488;
+    --cream: #f3ecdd;
+    --cream-soft: #c9c3b2;
+    --purple: #9d86c4;
+    --rose: #d59b8f;
+    --sky: #7fb0e0;
+    --display: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, "Times New Roman", serif;
+    --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg: #14110a;
+      --page-bg-2: #1c1810;
+      --ink: #efe7d4;
+      --ink-soft: #a99f86;
+      --hairline: #35301f;
+      --card: #201b11;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #14110a;
+    --page-bg-2: #1c1810;
+    --ink: #efe7d4;
+    --ink-soft: #a99f86;
+    --hairline: #35301f;
+    --card: #201b11;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--ui);
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, var(--page-bg-2), transparent 70%),
+      var(--page-bg);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 6vw, 72px) 20px 96px; }
+
+  /* ---------- Encabezado editorial ---------- */
+  .masthead { text-align: center; margin-bottom: clamp(36px, 6vw, 64px); }
+  .crest {
+    width: 76px; height: 76px; margin: 0 auto 22px;
+    border-radius: 20px;
+    background:
+      radial-gradient(120% 120% at 50% 20%, var(--navy-3), var(--navy) 70%);
+    display: grid; place-items: center;
+    box-shadow: 0 12px 34px rgba(12,18,46,.35), inset 0 0 0 1px rgba(230,180,90,.35);
+  }
+  .crest svg { width: 40px; height: 40px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    color: var(--gold); font-weight: 600; margin: 0 0 14px;
+  }
+  h1.title {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(46px, 9vw, 82px);
+    line-height: .98; letter-spacing: .01em;
+    margin: 0 0 16px; text-wrap: balance;
+    background: linear-gradient(180deg, var(--ink), color-mix(in srgb, var(--ink) 62%, var(--gold)));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede {
+    font-family: var(--display);
+    font-size: clamp(17px, 2.4vw, 22px);
+    color: var(--ink-soft); max-width: 34ch; margin: 0 auto;
+    font-style: italic;
+  }
+  .platforms {
+    margin-top: 26px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  .pill {
+    font-size: 12.5px; letter-spacing: .04em; color: var(--ink-soft);
+    border: 1px solid var(--hairline); border-radius: 999px;
+    padding: 7px 15px; background: var(--card);
+  }
+  .pill b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Galería de teléfonos ---------- */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    gap: clamp(26px, 4vw, 44px) clamp(22px, 3vw, 34px);
+    justify-items: center;
+    margin-top: 8px;
+  }
+  .device-block { width: 100%; max-width: 300px; }
+  .device-cap {
+    text-align: center; margin-top: 18px;
+  }
+  .device-cap .k {
+    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--gold); font-weight: 700;
+  }
+  .device-cap .d { font-size: 13.5px; color: var(--ink-soft); margin-top: 3px; }
+
+  .phone {
+    position: relative;
+    width: 100%; aspect-ratio: 300 / 620;
+    border-radius: 44px;
+    padding: 11px;
+    background: linear-gradient(160deg, #2b3255, #0a0f24);
+    box-shadow:
+      0 30px 60px -20px rgba(12,18,46,.55),
+      0 6px 18px rgba(0,0,0,.25),
+      inset 0 0 0 1.5px rgba(255,255,255,.06);
+  }
+  .screen {
+    position: relative; height: 100%; width: 100%;
+    border-radius: 34px; overflow: hidden;
+    background: radial-gradient(150% 90% at 50% 0%, var(--navy-2), var(--navy) 65%);
+    color: var(--cream);
+    display: flex; flex-direction: column;
+    font-size: 13px;
+  }
+  .notch {
+    position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+    width: 92px; height: 20px; background: #05070f; border-radius: 999px; z-index: 5;
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 20px 4px; font-size: 11px; color: var(--cream-soft);
+    letter-spacing: .02em;
+  }
+  .statusbar .dots { display: flex; gap: 4px; align-items: center; }
+  .statusbar .dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--cream-soft); }
+
+  .scr-body { flex: 1; overflow: hidden; padding: 6px 16px 0; }
+  .scr-title {
+    font-family: var(--display); font-size: 22px; font-weight: 500;
+    margin: 6px 0 2px; letter-spacing: .01em;
+  }
+  .scr-sub { font-size: 11.5px; color: var(--cream-soft); margin-bottom: 12px; }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+    border: 1px solid rgba(230,180,90,.16);
+    border-radius: 16px; padding: 12px 13px; margin-bottom: 10px;
+  }
+  .card.hero {
+    background:
+      radial-gradient(120% 120% at 100% 0%, rgba(230,180,90,.22), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+    border-color: rgba(230,180,90,.3);
+  }
+  .kicker {
+    font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: 6px;
+  }
+  .card h4 { font-family: var(--display); font-weight: 500; font-size: 16px; margin: 0 0 4px; }
+  .verse { font-family: var(--display); font-style: italic; font-size: 13px; line-height: 1.5; color: var(--cream); }
+  .muted { color: var(--cream-soft); font-size: 11px; }
+
+  /* filas de lista con ícono */
+  .row { display: flex; align-items: center; gap: 11px; padding: 10px 0; }
+  .row + .row { border-top: 1px solid rgba(255,255,255,.06); }
+  .ic {
+    flex: none; width: 34px; height: 34px; border-radius: 11px;
+    background: rgba(230,180,90,.14); display: grid; place-items: center;
+    border: 1px solid rgba(230,180,90,.22);
+  }
+  .ic svg { width: 18px; height: 18px; }
+  .row .tx { flex: 1; min-width: 0; }
+  .row .tx .t { font-size: 13px; font-weight: 600; color: var(--cream); }
+  .row .tx .s { font-size: 10.5px; color: var(--cream-soft); }
+  .chev { color: var(--gold); font-size: 15px; }
+  .badge {
+    font-size: 9.5px; padding: 3px 8px; border-radius: 999px;
+    background: rgba(230,180,90,.16); color: var(--gold-bright);
+    border: 1px solid rgba(230,180,90,.3); font-weight: 700; letter-spacing: .04em;
+  }
+
+  /* barra de pestañas */
+  .tabbar {
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 9px 6px calc(9px + env(safe-area-inset-bottom));
+    background: rgba(6,9,22,.72); border-top: 1px solid rgba(255,255,255,.07);
+    backdrop-filter: blur(8px);
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--cream-soft); }
+  .tab svg { width: 20px; height: 20px; }
+  .tab span { font-size: 8.5px; letter-spacing: .02em; }
+  .tab.on { color: var(--gold); }
+
+  /* Rosario: cuentas */
+  .beads { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 2px; }
+  .bead { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.14); }
+  .bead.done { background: var(--gold); }
+  .bead.now { background: var(--gold-bright); box-shadow: 0 0 0 3px rgba(244,212,136,.25); }
+
+  /* Adoración: anillo temporizador */
+  .ring-wrap { display: grid; place-items: center; padding: 6px 0 2px; }
+  .ring { position: relative; width: 150px; height: 150px; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .center {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+  }
+  .ring .time { font-family: var(--display); font-size: 30px; letter-spacing: .02em; }
+  .ring .lbl { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-top: 2px; }
+
+  /* Misas: mini-mapa */
+  .minimap {
+    height: 96px; border-radius: 14px; margin-bottom: 12px; position: relative; overflow: hidden;
+    background:
+      radial-gradient(70% 120% at 30% 10%, rgba(127,176,224,.28), transparent 60%),
+      linear-gradient(140deg, #16213f, #0b1330);
+    border: 1px solid rgba(127,176,224,.22);
+  }
+  .minimap .street { position: absolute; background: rgba(255,255,255,.07); }
+  .pin {
+    position: absolute; width: 22px; height: 22px; transform: translate(-50%,-100%);
+  }
+  .pin svg { width: 22px; height: 22px; }
+
+  .foot {
+    margin-top: clamp(48px, 8vw, 88px); text-align: center;
+    color: var(--ink-soft); font-size: 13.5px; border-top: 1px solid var(--hairline);
+    padding-top: 30px;
+  }
+  .foot .run {
+    display: inline-block; margin-top: 14px; font-family: var(--ui);
+    background: var(--navy); color: var(--cream); border: 1px solid rgba(230,180,90,.3);
+    border-radius: 12px; padding: 12px 18px; font-size: 13px; letter-spacing: .02em;
+  }
+  .foot code { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--gold-bright); }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="crest">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="10.4" y="3" width="3.2" height="18" rx="1.2" fill="#e6b45a"/>
+        <rect x="6" y="8" width="12" height="3.2" rx="1.2" fill="#e6b45a"/>
+      </svg>
+    </div>
+    <p class="eyebrow">Oraciones &amp; Rezos Católicos</p>
+    <h1 class="title">Oremus</h1>
+    <p class="lede">Un rincón de oración en tu bolsillo: rezos, el Rosario paso a paso, misas cercanas y tiempo ante el Santísimo.</p>
+    <div class="platforms">
+      <span class="pill"><b>iOS</b> &amp; <b>Android</b></span>
+      <span class="pill">Un solo código · <b>Flutter</b></span>
+      <span class="pill">Funciona <b>sin conexión</b></span>
+    </div>
+  </header>
+
+  <div class="gallery">
+
+    <!-- ============ INICIO ============ -->
+    <div class="device-block">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="scr-body">
+          <div class="scr-title">La paz sea contigo</div>
+          <div class="scr-sub">Viernes · 15 de agosto · Asunción de María</div>
+
+          <div class="card hero">
+            <div class="kicker">Oración del día</div>
+            <p class="verse">«Dichosa tú que has creído, porque lo que te ha dicho el Señor se cumplirá.»</p>
+            <p class="muted" style="margin:8px 0 0">Lucas 1, 45</p>
+          </div>
+
+          <div class="card" style="padding:6px 13px">
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="#e6b45a" stroke-width="1.6"/><circle cx="12" cy="4" r="1.6" fill="#e6b45a"/></svg></div>
+              <div class="tx"><div class="t">Rosario de hoy</div><div class="s">Misterios Gozosos · lunes y sábado</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="#e6b45a" stroke-width="1.6"/><circle cx="12" cy="11" r="2.2" stroke="#e6b45a" stroke-width="1.6"/></svg></div>
+              <div class="tx"><div class="t">Misas cerca de ti</div><div class="s">3 parroquias · la más cercana a 400 m</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#e6b45a" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="#e6b45a" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+              <div class="tx"><div class="t">15 min ante el Santísimo</div><div class="s">Adoración guiada</div></div>
+              <span class="chev">›</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.6"/></svg><span>Inicio</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h9l3 3v13H6z" stroke="currentColor" stroke-width="1.6"/><path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Oraciones</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/></svg><span>Rosario</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="currentColor" stroke-width="1.6"/></svg><span>Misas</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg><span>Adorar</span></div>
+        </div>
+      </div></div>
+      <div class="device-cap"><div class="k">Inicio</div><div class="d">Oración del día y accesos rápidos</div></div>
+    </div>
+
+    <!-- ============ ORACIONES ============ -->
+    <div class="device-block">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="scr-body">
+          <div class="scr-title">Oraciones</div>
+          <div class="scr-sub">Más de 40 rezos · toca para leer</div>
+
+          <div class="card" style="padding:6px 13px">
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="9.4" y="3" width="2.6" height="15" rx="1" fill="#e6b45a"/><rect x="6" y="7" width="9" height="2.6" rx="1" fill="#e6b45a"/></svg></div>
+              <div class="tx"><div class="t">Fundamentales</div><div class="s">Padre Nuestro · Ave María · Credo</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21c5-3 7-6.5 7-10a5 5 0 00-7-4 5 5 0 00-7 4c0 3.5 2 7 7 10z" stroke="#e6b45a" stroke-width="1.5"/></svg></div>
+              <div class="tx"><div class="t">A la Virgen María</div><div class="s">Salve · Ángelus · Acordaos</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4c1.5 3 5 3 5 7a5 5 0 01-10 0c0-4 3.5-4 5-7z" stroke="#e6b45a" stroke-width="1.5"/></svg></div>
+              <div class="tx"><div class="t">Al Espíritu Santo</div><div class="s">Ven Espíritu Santo · Secuencia</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="#e6b45a" stroke-width="1.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#e6b45a" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+              <div class="tx"><div class="t">Mañana y noche</div><div class="s">Ofrecimiento · bendición de la mesa</div></div>
+              <span class="chev">›</span>
+            </div>
+          </div>
+
+          <div class="card hero">
+            <div class="kicker">Ave María</div>
+            <p class="verse">Dios te salve, María, llena eres de gracia, el Señor es contigo…</p>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.6"/></svg><span>Inicio</span></div>
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h9l3 3v13H6z" stroke="currentColor" stroke-width="1.6"/><path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Oraciones</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/></svg><span>Rosario</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="currentColor" stroke-width="1.6"/></svg><span>Misas</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg><span>Adorar</span></div>
+        </div>
+      </div></div>
+      <div class="device-cap"><div class="k">Oraciones</div><div class="d">Biblioteca por categorías</div></div>
+    </div>
+
+    <!-- ============ ROSARIO ============ -->
+    <div class="device-block">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="scr-body">
+          <div class="scr-title">Santo Rosario</div>
+          <div class="scr-sub">Misterios Gozosos · 1º La Encarnación</div>
+
+          <div class="card hero">
+            <div class="kicker">Decena 1 de 5</div>
+            <h4>Ave María</h4>
+            <span class="badge">3 de 10</span>
+            <div class="beads" style="margin-top:10px">
+              <span class="bead done"></span><span class="bead done"></span><span class="bead now"></span>
+              <span class="bead"></span><span class="bead"></span><span class="bead"></span>
+              <span class="bead"></span><span class="bead"></span><span class="bead"></span><span class="bead"></span>
+            </div>
+            <p class="verse" style="margin-top:10px">…bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.</p>
+          </div>
+
+          <div class="card" style="padding:10px 13px">
+            <div class="kicker">Guía</div>
+            <div class="row" style="padding:7px 0"><div class="tx"><div class="t">Cómo se reza, paso a paso</div><div class="s">Con oraciones y qué misterios según el día</div></div><span class="chev">›</span></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.6"/></svg><span>Inicio</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h9l3 3v13H6z" stroke="currentColor" stroke-width="1.6"/></svg><span>Oraciones</span></div>
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="4" r="1.6" fill="currentColor"/></svg><span>Rosario</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="currentColor" stroke-width="1.6"/></svg><span>Misas</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg><span>Adorar</span></div>
+        </div>
+      </div></div>
+      <div class="device-cap"><div class="k">Rosario</div><div class="d">Guiado, cuenta las cuentas por ti</div></div>
+    </div>
+
+    <!-- ============ MISAS ============ -->
+    <div class="device-block">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="scr-body">
+          <div class="scr-title">Misas cerca</div>
+          <div class="scr-sub">Según tu ubicación · toca para ir</div>
+
+          <div class="minimap">
+            <div class="street" style="left:0;right:0;top:38%;height:6px"></div>
+            <div class="street" style="left:0;right:0;top:70%;height:5px"></div>
+            <div class="street" style="top:0;bottom:0;left:34%;width:6px"></div>
+            <div class="street" style="top:0;bottom:0;left:72%;width:5px"></div>
+            <div class="pin" style="left:34%;top:38%"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" fill="#e6b45a"/><rect x="11.2" y="6" width="1.6" height="6" rx=".6" fill="#0c122e"/><rect x="9.6" y="7.6" width="4.8" height="1.6" rx=".6" fill="#0c122e"/></svg></div>
+            <div class="pin" style="left:72%;top:70%"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" fill="#7fb0e0"/></svg></div>
+          </div>
+
+          <div class="card" style="padding:6px 13px">
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="#e6b45a" stroke-width="1.5"/></svg></div>
+              <div class="tx"><div class="t">Parroquia San José</div><div class="s">400 m · abre en Mapas · cómo llegar</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="#e6b45a" stroke-width="1.5"/></svg></div>
+              <div class="tx"><div class="t">Ntra. Sra. del Carmen</div><div class="s">1,1 km · llamar · cómo llegar</div></div>
+              <span class="chev">›</span>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="#e6b45a" stroke-width="1.5"/></svg></div>
+              <div class="tx"><div class="t">Catedral Metropolitana</div><div class="s">2,3 km · cómo llegar</div></div>
+              <span class="chev">›</span>
+            </div>
+          </div>
+          <p class="muted" style="text-align:center">Los horarios los confirma cada parroquia</p>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.6"/></svg><span>Inicio</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h9l3 3v13H6z" stroke="currentColor" stroke-width="1.6"/></svg><span>Oraciones</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/></svg><span>Rosario</span></div>
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="11" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg><span>Misas</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg><span>Adorar</span></div>
+        </div>
+      </div></div>
+      <div class="device-cap"><div class="k">Misas</div><div class="d">Iglesias cercanas y cómo llegar</div></div>
+    </div>
+
+    <!-- ============ ADORACIÓN ============ -->
+    <div class="device-block">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="scr-body">
+          <div class="scr-title">Ante el Santísimo</div>
+          <div class="scr-sub">15 minutos de adoración guiada</div>
+
+          <div class="card hero" style="padding:14px 13px">
+            <div class="ring-wrap">
+              <div class="ring">
+                <svg width="150" height="150" viewBox="0 0 150 150">
+                  <circle cx="75" cy="75" r="66" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8"/>
+                  <circle cx="75" cy="75" r="66" fill="none" stroke="#e6b45a" stroke-width="8"
+                          stroke-linecap="round" stroke-dasharray="414.7" stroke-dashoffset="120"/>
+                </svg>
+                <div class="center">
+                  <div class="time">12:34</div>
+                  <div class="lbl">restantes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="kicker">Meditación · 2 de 5</div>
+            <p class="verse">«Quédate con nosotros, Señor.» Contempla en silencio a Jesús presente en la Eucaristía y ofrécele tu día.</p>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.6"/></svg><span>Inicio</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h9l3 3v13H6z" stroke="currentColor" stroke-width="1.6"/></svg><span>Oraciones</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/></svg><span>Rosario</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z" stroke="currentColor" stroke-width="1.6"/></svg><span>Misas</span></div>
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Adorar</span></div>
+        </div>
+      </div></div>
+      <div class="device-cap"><div class="k">Adoración</div><div class="d">Temporizador y meditaciones</div></div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <p>Maqueta de diseño de <b>Oremus</b>. Así se verán las pantallas en iOS y Android.<br>El proyecto Flutter completo está en la carpeta <code>oremus/</code> del repositorio.</p>
+    <span class="run">Para correrla:&nbsp; <code>cd oremus &amp;&amp; flutter create . &amp;&amp; flutter run</code></span>
+  </div>
+
+</div>
