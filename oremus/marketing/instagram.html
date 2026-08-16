@@ -1,0 +1,307 @@
+<title>Kit de Instagram · Oremus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --page:#eaf1fb; --page2:#dbe7f7; --ink:#26344f; --ink-soft:#6d7f9c; --line:#cdddf0; --card:#fff;
+    --blue:#5b87c4; --blue-deep:#2f4670; --gold:#c68f2c; --gold-br:#e6b45a; --cream:#fbf6ea;
+    --display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --page:#0f151f;--page2:#141d2b;--ink:#e7eefa;--ink-soft:#9fb0c8;--line:#26313f;--card:#17202e;}}
+  :root[data-theme="dark"]{--page:#0f151f;--page2:#141d2b;--ink:#e7eefa;--ink-soft:#9fb0c8;--line:#26313f;--card:#17202e;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--ui);color:var(--ink);line-height:1.55;
+    background:radial-gradient(1200px 600px at 50% -10%,var(--page2),transparent 70%),var(--page)}
+  .wrap{max-width:1120px;margin:0 auto;padding:clamp(26px,5vw,60px) 20px 90px}
+  .eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 12px}
+  h1{font-family:var(--display);font-weight:500;font-size:clamp(34px,6vw,58px);margin:0 0 12px;line-height:1.02;text-wrap:balance}
+  .lede{font-family:var(--display);font-style:italic;color:var(--ink-soft);font-size:clamp(16px,2.3vw,20px);max-width:56ch;margin:0}
+  h2{font-family:var(--display);font-weight:500;font-size:clamp(24px,4vw,32px);margin:48px 0 6px}
+  h2 .num{color:var(--gold);font-size:.7em;margin-right:.4em}
+  .note{color:var(--ink-soft);font-size:14px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;
+    box-shadow:0 8px 22px -14px rgba(47,70,112,.5)}
+  .grid{display:grid;gap:22px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+  /* ---- Lienzo de post (1:1) e historia (9:16) ---- */
+  .canvas{position:relative;overflow:hidden;border-radius:16px;color:var(--cream);
+    background:radial-gradient(120% 90% at 50% 15%,#7ba0d4,#2f4670 75%);
+    display:flex;flex-direction:column;justify-content:center;text-align:center;padding:34px}
+  .canvas.sq{aspect-ratio:1/1}
+  .canvas.st{aspect-ratio:9/16}
+  .canvas .halo{position:absolute;inset:0;background:radial-gradient(closest-side at 50% 34%,rgba(255,255,255,.35),transparent 70%)}
+  .canvas > *{position:relative;z-index:2}
+  .cx{width:64px;height:64px;margin:0 auto 14px}
+  .canvas.sm .cx{width:48px;height:48px}
+  .canvas h3{font-family:var(--display);font-weight:500;font-size:clamp(26px,5.2vw,40px);margin:0 0 8px;line-height:1.05;text-wrap:balance}
+  .canvas .k{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-br);font-weight:700;margin:0 0 12px}
+  .canvas p{margin:0 auto;max-width:24ch;font-size:15px;color:#e7eefb}
+  .canvas .url{margin-top:18px;font-weight:700;letter-spacing:.02em;font-size:14px;color:#fff}
+  .canvas .beads{display:flex;gap:7px;justify-content:center;margin:6px 0 14px}
+  .canvas .beads i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.35)}
+  .canvas .beads i.on{background:var(--gold-br)}
+  .canvas .ring{width:96px;height:96px;margin:2px auto 12px;border-radius:50%;
+    background:conic-gradient(var(--gold-br) 62%,rgba(255,255,255,.22) 0);display:grid;place-items:center}
+  .canvas .ring b{width:74px;height:74px;border-radius:50%;background:#2f4670;display:grid;place-items:center;
+    font-family:var(--display);font-size:20px}
+  .spark{position:absolute;fill:var(--gold-br);opacity:.9}
+
+  .cap{margin-top:14px}
+  .cap pre{white-space:pre-wrap;font-family:var(--ui);font-size:14px;color:var(--ink);background:var(--page);
+    border:1px solid var(--line);border-radius:12px;padding:14px;margin:0}
+  .tags{font-size:13px;color:var(--blue-deep)}
+  .btn{margin-top:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;
+    padding:8px 14px;font-family:var(--ui);font-weight:600;font-size:13px;cursor:pointer}
+  .btn:hover{border-color:var(--gold)}
+  .pill{display:inline-block;background:var(--page);border:1px solid var(--line);border-radius:999px;
+    padding:6px 12px;font-size:12.5px;margin:0 6px 6px 0;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--gold);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  td b{color:var(--ink)}
+  .day{color:var(--blue-deep);font-weight:700;white-space:nowrap}
+  ul.tips{margin:0;padding-left:20px} ul.tips li{margin:8px 0}
+  .profile{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .avatar{width:74px;height:74px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:radial-gradient(120% 120% at 50% 25%,#cfe0f4,#7ba0d4);box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--gold-br)}
+  .avatar svg{width:38px;height:38px}
+  code{background:var(--page);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:13px}
+  .foot{margin-top:56px;border-top:1px solid var(--line);padding-top:22px;color:var(--ink-soft);font-size:13.5px}
+</style>
+<script>
+  function cx(sm){return '<svg class="cx" viewBox="0 0 24 24" fill="none"><rect x="10.4" y="3" width="3.2" height="18" rx="1.2" fill="#e6b45a"/><rect x="6" y="8" width="12" height="3.2" rx="1.2" fill="#e6b45a"/></svg>';}
+</script>
+
+<div class="wrap">
+
+  <p class="eyebrow">Kit de contenido para Instagram</p>
+  <h1>Oremus en Instagram</h1>
+  <p class="lede">Todo listo para lanzar: diseños de posts y stories, textos para copiar, guion de Reel, bio, hashtags y un plan de una semana. Enlace: <b>oremusweb.netlify.app</b></p>
+
+  <!-- ============ PERFIL ============ -->
+  <h2><span class="num">01</span>Perfil</h2>
+  <p class="note">Configura primero la cuenta. La foto de perfil es el ícono de la app (cruz dorada sobre azul).</p>
+  <div class="card">
+    <div class="profile">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="10.4" y="3" width="3.2" height="18" rx="1.2" fill="#c68f2c"/><rect x="6" y="8" width="12" height="3.2" rx="1.2" fill="#c68f2c"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:16px">Usuario sugerido: <code>@oremus.app</code> · <code>@oremus.oracion</code> · <code>@oremusweb</code></div>
+        <div class="note" style="margin:6px 0 0">Nombre visible: <b>Oremus · Oración católica</b></div>
+      </div>
+    </div>
+    <div class="cap">
+      <div class="note" style="margin:14px 0 4px"><b>Biografía</b> (cópiala):</div>
+      <pre id="bio">✝️ Oraciones y rezos católicos
+📿 Rosario guiado · ⛪ Misas cerca · 🕯️ Adoración
+🙏 Gratis, sin distracciones · iOS y Android pronto
+👇 Reza ahora</pre>
+      <button class="btn" data-copy="bio">Copiar biografía</button>
+      <div class="note" style="margin:12px 0 0"><b>Enlace de la bio:</b> <code>https://oremusweb.netlify.app/</code> (o crea un Linktree que incluya “Donar” y “Dejar comentario”).</div>
+      <div class="note" style="margin:8px 0 0"><b>Historias destacadas:</b> “Rosario”, “Misas”, “Adoración”, “Apoyar”.</div>
+    </div>
+  </div>
+
+  <!-- ============ POSTS ============ -->
+  <h2><span class="num">02</span>Publicaciones (feed 1:1)</h2>
+  <p class="note">Toma una captura de cada diseño (en pantalla grande = mayor resolución) y súbela con su texto. O recréalos en Canva con estos mismos colores.</p>
+
+  <div class="grid g2">
+
+    <!-- Post 1: Lanzamiento -->
+    <div class="card">
+      <div class="canvas sq">
+        <div class="halo"></div>
+        <svg class="spark" style="top:20%;left:22%;width:20px;height:20px" viewBox="0 0 24 24"><path d="M12 2l1.6 8.4L22 12l-8.4 1.6L12 22l-1.6-8.4L2 12l8.4-1.6z"/></svg>
+        <svg class="spark" style="top:24%;right:20%;width:14px;height:14px" viewBox="0 0 24 24"><path d="M12 2l1.6 8.4L22 12l-8.4 1.6L12 22l-1.6-8.4L2 12l8.4-1.6z"/></svg>
+        <svg class="cx" viewBox="0 0 24 24" fill="none"><rect x="10.4" y="3" width="3.2" height="18" rx="1.2" fill="#e6b45a"/><rect x="6" y="8" width="12" height="3.2" rx="1.2" fill="#e6b45a"/></svg>
+        <h3>Oremus</h3>
+        <p>Oraciones y rezos católicos, siempre contigo.</p>
+        <div class="url">oremusweb.netlify.app</div>
+      </div>
+      <div class="cap">
+        <pre id="c1">🙏 Tu rincón de oración, siempre contigo.
+
+Te presentamos Oremus: oraciones y rezos católicos, el Santo Rosario paso a paso, misas cerca de ti y 15 minutos ante el Santísimo. Todo en un solo lugar, gratis y sin distracciones.
+
+✨ Empieza hoy → enlace en la bio (oremusweb.netlify.app)
+Etiqueta a alguien que necesita este momento de paz.
+Que Dios te bendiga. 🕊️</pre>
+        <button class="btn" data-copy="c1">Copiar texto</button>
+      </div>
+    </div>
+
+    <!-- Post 2: Rosario -->
+    <div class="card">
+      <div class="canvas sq sm">
+        <div class="halo"></div>
+        <div class="k">Paso a paso</div>
+        <div class="beads"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+        <h3>El Rosario<br>te guía la app</h3>
+        <p>Los misterios de cada día, cuenta por cuenta.</p>
+        <div class="url">oremusweb.netlify.app</div>
+      </div>
+      <div class="cap">
+        <pre id="c2">📿 ¿Se te pierde el hilo al rezar el Rosario?
+
+Oremus te guía cuenta por cuenta, con los misterios que corresponden a cada día. Solo abre… y reza.
+
+🔗 oremusweb.netlify.app (enlace en la bio)
+Comparte con quien está aprendiendo a rezarlo. 🙏</pre>
+        <button class="btn" data-copy="c2">Copiar texto</button>
+      </div>
+    </div>
+
+    <!-- Post 3: Misas -->
+    <div class="card">
+      <div class="canvas sq sm">
+        <div class="halo"></div>
+        <svg class="cx" viewBox="0 0 24 24" fill="none" style="width:44px;height:44px"><path d="M12 21c4.6-3 6.5-6.2 6.5-10a6.5 6.5 0 10-13 0c0 3.8 1.9 7 6.5 10z" stroke="#e6b45a" stroke-width="1.6" fill="none"/><circle cx="12" cy="11" r="2.3" stroke="#e6b45a" stroke-width="1.6" fill="none"/></svg>
+        <h3>¿Misa hoy?</h3>
+        <p>Encuentra las iglesias católicas más cercanas y llega con un toque.</p>
+        <div class="url">oremusweb.netlify.app</div>
+      </div>
+      <div class="cap">
+        <pre id="c3">⛪ ¿Dónde hay misa cerca?
+
+Con Oremus encuentras las iglesias católicas más cercanas a ti y abres las indicaciones para llegar en un toque.
+
+📍 Pruébalo: oremusweb.netlify.app
+Guárdalo para el domingo. 🙏</pre>
+        <button class="btn" data-copy="c3">Copiar texto</button>
+      </div>
+    </div>
+
+    <!-- Post 4: Adoración -->
+    <div class="card">
+      <div class="canvas sq sm">
+        <div class="halo"></div>
+        <div class="ring"><b>15:00</b></div>
+        <h3>15 minutos<br>ante el Santísimo</h3>
+        <p>Adoración guiada, minuto a minuto.</p>
+        <div class="url">oremusweb.netlify.app</div>
+      </div>
+      <div class="cap">
+        <pre id="c4">🕯️ Regálale 15 minutos a Jesús.
+
+La adoración guiada de Oremus te acompaña, minuto a minuto, ante el Santísimo. Un alto en el día para el alma.
+
+✨ oremusweb.netlify.app (enlace en la bio)
+¿Cuándo fue tu última visita al Santísimo? 🙏</pre>
+        <button class="btn" data-copy="c4">Copiar texto</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ STORIES ============ -->
+  <h2><span class="num">03</span>Historias (9:16)</h2>
+  <p class="note">Súbelas como Story y añade el <b>sticker de enlace</b> a oremusweb.netlify.app. La segunda lleva una encuesta para generar interacción.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:720px">
+    <div class="card">
+      <div class="canvas st sm">
+        <div class="halo"></div>
+        <svg class="spark" style="top:16%;left:24%;width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 2l1.6 8.4L22 12l-8.4 1.6L12 22l-1.6-8.4L2 12l8.4-1.6z"/></svg>
+        <svg class="cx" viewBox="0 0 24 24" fill="none"><rect x="10.4" y="3" width="3.2" height="18" rx="1.2" fill="#e6b45a"/><rect x="6" y="8" width="12" height="3.2" rx="1.2" fill="#e6b45a"/></svg>
+        <h3>Reza donde<br>estés</h3>
+        <p>Oraciones, Rosario y adoración en tu teléfono.</p>
+        <div class="url">👆 Toca el enlace</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="canvas st sm" style="background:radial-gradient(120% 90% at 50% 20%,#8fb0dd,#3f6bad 78%)">
+        <div class="halo"></div>
+        <div class="k">Cuéntanos</div>
+        <h3>¿Rezas el<br>Rosario a<br>diario?</h3>
+        <p style="margin-top:14px">Sí, siempre 🙏 · Me cuesta 💭</p>
+        <div class="url" style="margin-top:20px">Desliza y prueba Oremus</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REEL ============ -->
+  <h2><span class="num">04</span>Guion de Reel (15 s)</h2>
+  <p class="note">Lo más fácil: <b>graba tu pantalla</b> navegando la web, y encima pon estos textos. Música instrumental suave o canto gregoriano tranquilo.</p>
+  <div class="card">
+    <table>
+      <tr><th>Tiempo</th><th>En pantalla</th><th>Texto sobrepuesto</th></tr>
+      <tr><td class="day">0–2 s</td><td>Pantalla de Inicio de la web</td><td>“Un minuto para rezar 🙏”</td></tr>
+      <tr><td class="day">2–6 s</td><td>Abres Oraciones → Ave María</td><td>“Todas tus oraciones, a la mano”</td></tr>
+      <tr><td class="day">6–10 s</td><td>Rosario guiado (cuentas avanzando)</td><td>“El Rosario, paso a paso”</td></tr>
+      <tr><td class="day">10–13 s</td><td>Adoración (temporizador)</td><td>“15 min ante el Santísimo”</td></tr>
+      <tr><td class="day">13–15 s</td><td>Ícono + URL</td><td>“Oremus · gratis → oremusweb.netlify.app”</td></tr>
+    </table>
+    <div class="cap">
+      <div class="note" style="margin:14px 0 4px"><b>Texto del Reel</b> (descripción):</div>
+      <pre id="reel">📿 Reza el Rosario, encuentra misa cerca y haz un alto ante el Santísimo… desde tu teléfono.
+
+Oremus es gratis y sin distracciones. Pruébala 🙏
+🔗 oremusweb.netlify.app (enlace en la bio)</pre>
+      <button class="btn" data-copy="reel">Copiar texto</button>
+    </div>
+  </div>
+
+  <!-- ============ HASHTAGS ============ -->
+  <h2><span class="num">05</span>Hashtags</h2>
+  <p class="note">Mezcla de alcance y nicho. Usa 15–25 por post; varíalos entre publicaciones.</p>
+  <div class="card">
+    <div>
+      <span class="pill">#Oremus</span><span class="pill">#oración</span><span class="pill">#oraciones</span><span class="pill">#oracióncatólica</span><span class="pill">#católico</span><span class="pill">#católicos</span><span class="pill">#fe</span><span class="pill">#rosario</span><span class="pill">#santorosario</span><span class="pill">#virgenmaría</span><span class="pill">#jesús</span><span class="pill">#eucaristía</span><span class="pill">#adoración</span><span class="pill">#santísimo</span><span class="pill">#iglesiacatólica</span><span class="pill">#vidacatólica</span><span class="pill">#rezaconmigo</span><span class="pill">#catolicosdeinstagram</span><span class="pill">#diosteBendiga</span><span class="pill">#paz</span><span class="pill">#espiritualidad</span><span class="pill">#evangelio</span><span class="pill">#diosesamor</span><span class="pill">#appcatólica</span>
+    </div>
+    <div class="cap">
+      <pre id="tags">#Oremus #oración #oraciones #oracióncatólica #católico #católicos #fe #rosario #santorosario #virgenmaría #jesús #eucaristía #adoración #santísimo #iglesiacatólica #vidacatólica #rezaconmigo #catolicosdeinstagram #diosteBendiga #paz #espiritualidad #evangelio #diosesamor #appcatólica</pre>
+      <button class="btn" data-copy="tags">Copiar hashtags</button>
+    </div>
+  </div>
+
+  <!-- ============ CALENDARIO ============ -->
+  <h2><span class="num">06</span>Plan de una semana</h2>
+  <div class="card">
+    <table>
+      <tr><th>Día</th><th>Contenido</th><th>Formato</th></tr>
+      <tr><td class="day">Lunes</td><td><b>Lanzamiento</b> — “Te presentamos Oremus”</td><td>Post 1</td></tr>
+      <tr><td class="day">Martes</td><td>Cómo rezar el Rosario con la app</td><td>Reel</td></tr>
+      <tr><td class="day">Miércoles</td><td>Versículo del día + encuesta “¿Rezas a diario?”</td><td>Story</td></tr>
+      <tr><td class="day">Jueves</td><td><b>Jueves eucarístico</b>: 15 min ante el Santísimo</td><td>Post 4</td></tr>
+      <tr><td class="day">Viernes</td><td>Misterios dolorosos / oración del viernes</td><td>Post o Reel</td></tr>
+      <tr><td class="day">Sábado</td><td>“Misas del domingo cerca de ti”</td><td>Post 3 + Story</td></tr>
+      <tr><td class="day">Domingo</td><td>Apoyo al proyecto + comentario de un usuario</td><td>Post + Story</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ TIPS ============ -->
+  <h2><span class="num">07</span>Consejos para que funcione</h2>
+  <div class="card">
+    <ul class="tips">
+      <li><b>El gancho manda:</b> las dos primeras líneas del texto deciden si siguen leyendo. Empieza con una pregunta o una promesa.</li>
+      <li><b>Enlace visible:</b> pon el enlace en la bio y recuérdalo en cada post (“enlace en la bio”). En Stories usa el sticker de enlace.</li>
+      <li><b>Constancia &gt; perfección:</b> 3–4 publicaciones por semana, mejor que 10 de golpe y luego nada.</li>
+      <li><b>Responde siempre:</b> contesta comentarios y mensajes rápido; el algoritmo premia la conversación.</li>
+      <li><b>Colabora:</b> etiqueta o escribe a parroquias, grupos juveniles y cuentas católicas para que te compartan.</li>
+      <li><b>Reutiliza:</b> un Reel que funcione, vuélvelo a publicar como Story y como post.</li>
+      <li><b>Llama a la acción:</b> “etiqueta a alguien”, “guárdalo para el domingo”, “compártelo con tu grupo de oración”.</li>
+      <li><b>Mide:</b> revisa qué post trae más clics al enlace y en GoatCounter si llegan más de Android o iOS.</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    Kit de contenido para <b>Oremus</b> · oremusweb.netlify.app — hecho con la identidad de la app (azul mariano, oro y destellos).
+    Los diseños son capturables; para máxima calidad, tómalos en pantalla grande o recréalos en Canva con estos colores (<code>#5b87c4</code>, <code>#2f4670</code>, <code>#e6b45a</code>).
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.btn[data-copy]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var el=document.getElementById(b.getAttribute('data-copy'));
+      var txt=el?el.textContent:'';
+      var done=function(){var t=b.textContent;b.textContent='¡Copiado! ✓';setTimeout(function(){b.textContent=t;},1400);};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,done);}
+      else{try{var r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');done();}catch(e){}}
+    });
+  });
+</script>
