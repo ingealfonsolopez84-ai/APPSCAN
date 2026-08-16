@@ -83,12 +83,33 @@
   #panel small{color:#9fb3d4}
   #panel .x{position:absolute;top:10px;right:12px;cursor:pointer;color:#9fb3d4}
   a{color:var(--blue-deep)}
+  /* Apoyo / donación / comentarios */
+  header.bar .heart{border:none;background:none;color:var(--gold);font-size:20px;cursor:pointer;padding:4px}
+  .support-msg{font-family:var(--display);font-style:italic;color:var(--verse);line-height:1.6;font-size:16.5px}
+  .amt-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+  .paypal-btn{background:#ffc439;color:#003087;font-weight:800;border:none;border-radius:13px;padding:15px;
+    width:100%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .paypal-btn:disabled{opacity:.55;cursor:not-allowed}
+  .paypal-btn i{font-style:italic;font-weight:800}
+  .bank{margin-top:12px;border-top:1px solid rgba(110,151,201,.18);padding-top:12px}
+  .bank .brow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px}
+  .bank .brow b{color:var(--ink)} .bank .brow span{color:var(--ink-soft);text-align:right;word-break:break-all}
+  .copy{border:1px solid rgba(110,151,201,.3);background:#fff;border-radius:8px;font-size:11px;padding:3px 8px;cursor:pointer;color:var(--blue-deep)}
+  .stars{display:flex;gap:6px;margin:6px 0 12px}
+  .stars span{font-size:28px;cursor:pointer;color:#d7e0ee;line-height:1}
+  .stars span.on{color:var(--gold-bright)}
+  textarea,input.fld{width:100%;font-family:var(--ui);font-size:14.5px;color:var(--ink);
+    border:1px solid rgba(110,151,201,.3);border-radius:12px;padding:12px;background:var(--sky-1);resize:vertical}
+  textarea:focus,input.fld:focus{outline:none;border-color:var(--gold)}
+  .thanks{background:#eaf6ec;border:1px solid #b8dfbf;color:#2f6b3b;border-radius:12px;padding:12px;font-size:13.5px;margin-top:10px}
+</style>
 </style>
 
 <div id="frame">
   <header class="bar">
     <button class="back" id="back" aria-label="Atrás">‹</button>
     <h1 id="title">Oremus</h1>
+    <button class="heart" id="heart" aria-label="Apoyar" title="Apoyar a Oremus" onclick="push({v:'apoyo'})">♥</button>
     <span class="spark" id="spark"></span>
   </header>
   <main id="view"></main>
@@ -103,6 +124,10 @@
     <div><div class="n" id="pI">0</div><small>iOS</small></div>
     <div><div class="n" id="pD">0</div><small>Escritorio</small></div>
   </div>
+  <div class="grid" style="margin-top:8px">
+    <div><div class="n" id="pDon">0</div><small>Clics donar</small></div>
+    <div style="grid-column:span 2"><div class="n" id="pFb">0</div><small>Comentarios (este navegador)</small></div>
+  </div>
   <p class="muted" style="color:#9fb3d4;margin:10px 0 0">Los totales de todos los visitantes se ven en tu panel de analítica (ver README).</p>
 </div>
 
@@ -113,6 +138,27 @@
  *  Cloudflare Web Analytics. Instrucciones en web-demo/README.md
  * ============================================================= */
 const ANALYTICS = { goatcounterCode: "" }; // p.ej. "oremus" -> oremus.goatcounter.com
+
+/* ============================================================= *
+ *  APOYO / DONATIVOS / COMENTARIOS  — llena SOLO estos campos.
+ *  El botón cobra a TU cuenta de PayPal; nada de esto lo vemos
+ *  nosotros. Prioridad de PayPal: negocio > botón > paypal.me
+ * ============================================================= */
+const SUPPORT = {
+  // --- PayPal (elige una vía) ---
+  paypalBusiness: "",        // tu correo de PayPal (permite concepto y monto). Ej: "tucorreo@ejemplo.com"
+  paypalHostedButtonId: "",  // o el ID de un botón "Donar" de PayPal
+  paypalMe: "",              // o tu usuario de PayPal.me. Ej: "oremusapp" -> paypal.me/oremusapp
+  currency: "MXN",
+  suggested: [50, 100, 200, 500],
+
+  // --- Transferencia bancaria (opcional; déjalo vacío si no quieres mostrarlo) ---
+  bank: { banco: "", beneficiario: "", cuenta: "", clabe: "", concepto: "Donativo OREMUS" },
+
+  // --- Comentarios ---
+  feedbackEmail: "",         // tu correo para recibir comentarios por mailto. Ej: "tucorreo@ejemplo.com"
+  formspreeId: ""            // opcional: ID de Formspree (recibe comentarios sin abrir el correo)
+};
 
 function detectPlatform(){
   const ua = navigator.userAgent || "";
@@ -138,6 +184,8 @@ function renderPanel(){
   document.getElementById("pA").textContent=c["Android"]||0;
   document.getElementById("pI").textContent=c["iOS"]||0;
   document.getElementById("pD").textContent=c["Escritorio"]||0;
+  document.getElementById("pDon").textContent=(+(localStorage.getItem("oremus.demo.don")||0));
+  try{ document.getElementById("pFb").textContent=JSON.parse(localStorage.getItem("oremus.feedback")||"[]").length; }catch(e){}
   document.getElementById("panel").style.display="block";
 }
 function sendAnalytics(){
@@ -298,7 +346,7 @@ function render(state){
   const v=state.v; view.scrollTop=0;
   ({inicio:renderInicio, oraciones:renderOraciones, cat:()=>renderCat(state.cat),
     prayer:()=>renderPrayer(state.cat,state.i), rosario:renderRosario, guia:renderGuia,
-    rezo:renderRezo, misas:renderMisas, adorar:renderAdorar}[v])();
+    rezo:renderRezo, misas:renderMisas, adorar:renderAdorar, apoyo:renderApoyo}[v])();
 }
 
 function renderInicio(){
@@ -322,6 +370,11 @@ function renderInicio(){
       ${rowHTML('pin','Misas cerca de ti','Según tu ubicación',"go('misas')")}
       ${rowHTML('host','15 min ante el Santísimo','Adoración guiada',"go('adorar')")}
       ${rowHTML('book','Oraciones','Antes y después de misa, y más',"go('oraciones')")}
+    </div>
+    <div class="card hero" style="cursor:pointer" onclick="push({v:'apoyo'})">
+      <div class="kicker">Apoya el proyecto</div>
+      <p class="support-msg" style="margin:10px 0 12px">Ayúdanos a que Oremus llegue a ser una app. Con tu apoyo llegaremos más rápido. 🙏</p>
+      <button class="btn gold" onclick="event.stopPropagation();push({v:'apoyo'})">♥ Donar o dejar tu comentario</button>
     </div>`;
 }
 function renderOraciones(){
@@ -507,6 +560,104 @@ function drawRing(){
   ctx.fillText(adRemain===0?'¡Amén!':m+':'+s, cx, cy+8);
   ctx.fillStyle='#c68f2c'; ctx.font='700 11px system-ui,sans-serif';
   ctx.fillText(adRemain===0?'COMPLETADA':'RESTANTES', cx, cy+30);
+}
+
+/* ============================================================= *
+ *  APOYO: donación (PayPal / banco) y comentarios
+ * ============================================================= */
+let donAmount = null;
+function donateUrl(){
+  const s=SUPPORT, amt=donAmount;
+  if(s.paypalBusiness){
+    let u='https://www.paypal.com/donate?business='+encodeURIComponent(s.paypalBusiness)
+      +'&item_name='+encodeURIComponent('Donativo OREMUS')+'&currency_code='+encodeURIComponent(s.currency||'USD');
+    if(amt) u+='&amount='+amt;
+    return u;
+  }
+  if(s.paypalHostedButtonId) return 'https://www.paypal.com/donate/?hosted_button_id='+encodeURIComponent(s.paypalHostedButtonId);
+  if(s.paypalMe) return 'https://www.paypal.me/'+encodeURIComponent(s.paypalMe)+(amt?('/'+amt+(s.currency||'')):'');
+  return '';
+}
+function setDon(a){ donAmount=a; document.querySelectorAll('.amt-row .chip').forEach(c=>c.classList.toggle('on', +c.dataset.a===a)); }
+function doDonate(){
+  const url=donateUrl();
+  if(!url){ alert('Configura tu PayPal en el archivo (ver web-demo/README.md) para activar el botón.'); return; }
+  try{ localStorage.setItem('oremus.demo.don', (+(localStorage.getItem('oremus.demo.don')||0))+1); }catch(e){}
+  if(window.goatcounter&&window.goatcounter.count) window.goatcounter.count({path:'donar/click',title:'Clic en Donar',event:true});
+  window.open(url,'_blank','noopener');
+}
+function copy(txt,btn){ navigator.clipboard&&navigator.clipboard.writeText(txt); if(btn){const t=btn.textContent;btn.textContent='¡Copiado!';setTimeout(()=>btn.textContent=t,1200);} }
+
+let fbStars=0;
+function setStars(n){ fbStars=n; document.querySelectorAll('.stars span').forEach((s,i)=>s.classList.toggle('on', i<n)); }
+function sendFeedback(){
+  const name=(document.getElementById('fbName').value||'').trim();
+  const msg=(document.getElementById('fbMsg').value||'').trim();
+  const box=document.getElementById('fbResult');
+  if(!msg){ box.innerHTML='<div class="thanks" style="background:#fdeeee;border-color:#eec6c6;color:#a8443b">Escribe tu comentario antes de enviar.</div>'; return; }
+  const entry={name:name||'Anónimo', rating:fbStars, msg, platform:PLATFORM, date:new Date().toISOString()};
+  try{ const k='oremus.feedback'; const arr=JSON.parse(localStorage.getItem(k)||'[]'); arr.unshift(entry); localStorage.setItem(k, JSON.stringify(arr.slice(0,200))); }catch(e){}
+  if(window.goatcounter&&window.goatcounter.count) window.goatcounter.count({path:'comentario/enviado',title:'Comentario enviado',event:true});
+
+  const finish=()=>{ box.innerHTML='<div class="thanks">¡Gracias por tu comentario! Nos ayuda muchísimo. Que Dios te bendiga. 🙏</div>';
+    document.getElementById('fbName').value=''; document.getElementById('fbMsg').value=''; setStars(0); };
+
+  if(SUPPORT.formspreeId){
+    fetch('https://formspree.io/f/'+SUPPORT.formspreeId,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify(entry)}).then(r=>finish()).catch(_=>mailtoFallback(entry,box,finish));
+  } else if(SUPPORT.feedbackEmail){
+    mailtoFallback(entry,box,finish);
+  } else {
+    finish();
+  }
+}
+function mailtoFallback(entry,box,finish){
+  if(SUPPORT.feedbackEmail){
+    const sub=encodeURIComponent('Comentario Oremus'+(entry.rating?(' · '+entry.rating+'★'):''));
+    const body=encodeURIComponent('De: '+entry.name+' ('+entry.platform+')\n\n'+entry.msg);
+    window.location.href='mailto:'+SUPPORT.feedbackEmail+'?subject='+sub+'&body='+body;
+  }
+  finish();
+}
+
+function renderApoyo(){
+  renderTabs(null); setHeader('Apoya a Oremus', true);
+  const s=SUPPORT, paypalReady=!!(s.paypalBusiness||s.paypalHostedButtonId||s.paypalMe);
+  const bankRows=[['Banco',s.bank.banco],['Beneficiario',s.bank.beneficiario],['Cuenta',s.bank.cuenta],['CLABE',s.bank.clabe],['Concepto',s.bank.concepto]]
+    .filter(r=>r[1]);
+  const hasBank=bankRows.length>0 && (s.bank.cuenta||s.bank.clabe);
+  view.innerHTML=`
+    <div class="card hero">
+      <div class="kicker">Tu apoyo cuenta</div>
+      <p class="support-msg" style="margin:12px 0 0">Es importante tu apoyo para que este proyecto se vea realizado como una app. Con tu ayuda llegaremos más rápido. Que Dios te bendiga. 🙏</p>
+    </div>
+
+    <div class="card">
+      <div class="kicker">Hacer un donativo</div>
+      <h2 class="t" style="font-size:20px;margin:8px 0 2px">Donativo a la causa de Oremus</h2>
+      <p class="muted" style="margin:0 0 12px">Elige un monto (opcional) y continúa con PayPal de forma segura.</p>
+      <div class="amt-row">
+        ${(s.suggested||[]).map(a=>`<span class="chip" data-a="${a}" onclick="setDon(${a})">$${a}</span>`).join('')}
+        <span class="chip" data-a="0" onclick="setDon(null)">Otro</span>
+      </div>
+      <button class="paypal-btn" ${paypalReady?'':'disabled'} onclick="doDonate()"><i>Pay</i><i style="color:#0070ba">Pal</i> &nbsp;· Donar</button>
+      ${paypalReady?'':'<p class="muted" style="margin:10px 0 0">El botón se activa cuando configures tu PayPal (ver <b>web-demo/README.md</b>).</p>'}
+      ${hasBank?`<div class="bank"><div class="kicker" style="margin-bottom:6px">O por transferencia</div>
+        ${bankRows.map(r=>`<div class="brow"><b>${r[0]}</b><span>${esc(r[1])} ${(r[0]==='CLABE'||r[0]==='Cuenta')?`<button class="copy" onclick="copy('${esc(r[1])}',this)">copiar</button>`:''}</span></div>`).join('')}
+      </div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="kicker">Déjanos tu comentario</div>
+      <p class="muted" style="margin:8px 0 10px">¿Qué te pareció Oremus? Tu opinión nos guía.</p>
+      <div class="stars">${[1,2,3,4,5].map(n=>`<span onclick="setStars(${n})">★</span>`).join('')}</div>
+      <input class="fld" id="fbName" placeholder="Tu nombre (opcional)" style="margin-bottom:10px">
+      <textarea id="fbMsg" rows="4" placeholder="Escribe aquí tu comentario…"></textarea>
+      <button class="btn gold" style="margin-top:12px" onclick="sendFeedback()">Enviar comentario</button>
+      <div id="fbResult"></div>
+    </div>
+    <p class="muted" style="text-align:center;margin:4px 0 0">Gracias por ser parte de esta misión. 🕊️</p>`;
+  setStars(0); donAmount=null;
 }
 
 /* Arranque */

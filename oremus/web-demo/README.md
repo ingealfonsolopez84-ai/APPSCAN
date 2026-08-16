@@ -61,6 +61,47 @@ Sin cuentas, sin cookies propias, sin datos personales. Solo se cuenta la **cate
 dispositivo**. La ubicación (Misas) se pide en el momento, se usa para abrir Mapas y no
 se guarda. Declara *"No se recopilan datos personales"* con tranquilidad.
 
+## Apoyo: donativos (PayPal) y comentarios
+
+El demo incluye un apartado **"Apoya a Oremus"** (botón ♥ en la cabecera y tarjeta en
+Inicio) con el mensaje de apoyo, un **botón de donación por PayPal** y un formulario de
+**comentarios**. Todo se configura en un solo bloque `const SUPPORT = { … }` al inicio
+del `<script>` de `index.html`:
+
+```js
+const SUPPORT = {
+  // PayPal — elige UNA vía (prioridad: negocio > botón > paypal.me)
+  paypalBusiness: "tucorreo@ejemplo.com", // permite fijar concepto "Donativo OREMUS" y monto
+  paypalHostedButtonId: "",               // o el ID de un botón "Donar" creado en PayPal
+  paypalMe: "",                            // o tu usuario de PayPal.me
+  currency: "MXN",
+  suggested: [50, 100, 200, 500],         // montos sugeridos
+
+  // Transferencia bancaria (opcional; déjalo vacío para ocultarlo)
+  bank: { banco:"BBVA", beneficiario:"Tu Nombre", cuenta:"", clabe:"0123 4567 8901 2345 67", concepto:"Donativo OREMUS" },
+
+  // Comentarios
+  feedbackEmail: "tucorreo@ejemplo.com",   // los comentarios llegan por correo (mailto)
+  formspreeId: ""                          // o un ID de Formspree para recibirlos sin abrir el correo
+};
+```
+
+- **El donativo cobra a TU cuenta de PayPal.** Con `paypalBusiness` el pago se etiqueta
+  con el concepto **"Donativo OREMUS"** y toma el monto elegido; PayPal maneja los datos
+  de pago de forma segura (la página nunca ve tarjetas ni contraseñas).
+- **Datos bancarios:** los que pongas en `bank` se muestran con botón de "copiar". Son
+  **tuyos**; nadie más los edita.
+- **Comentarios:** se guardan en el navegador del visitante y, además,
+  - con `formspreeId` → te llegan a Formspree (recomendado, no expone tu correo), o
+  - con `feedbackEmail` → abren el correo del visitante ya redactado hacia tu email.
+  > En el **artefacto de claude.ai** el envío por Formspree no funciona (bloquea red);
+  > usa `feedbackEmail` para probar, o publica en tu hosting para Formspree.
+- Métricas rápidas: abre con `?panel=1` para ver clics en *Donar* y número de comentarios
+  guardados en tu navegador. Los totales reales van a tu analítica/Formspree.
+
+> Seguridad: no se piden ni almacenan datos de pago en la página. Un donativo por PayPal
+> es una transacción tuya con PayPal; el demo solo abre el enlace a tu cuenta.
+
 ## Qué mirar para decidir
 
 - **% iOS vs % Android** → dónde priorizar la app nativa y el gasto de tienda.
