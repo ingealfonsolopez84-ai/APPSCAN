@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../data/rosary.dart';
 import '../theme.dart';
@@ -213,6 +215,41 @@ class RosaryPrayScreen extends StatefulWidget {
 class _RosaryPrayScreenState extends State<RosaryPrayScreen> {
   late final List<_Step> _steps = _buildSteps(widget.set);
   int _i = 0;
+  bool _revealed = false; // segunda parte del Ave María visible
+  Timer? _revealTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleReveal();
+  }
+
+  @override
+  void dispose() {
+    _revealTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Al entrar a un Ave María, la respuesta aparece sola tras 5 segundos.
+  void _scheduleReveal() {
+    _revealTimer?.cancel();
+    _revealed = !_steps[_i].split; // los demás pasos se ven completos
+    if (_steps[_i].split) {
+      _revealTimer = Timer(const Duration(seconds: 5), () {
+        if (mounted) setState(() => _revealed = true);
+      });
+    }
+  }
+
+  void _goTo(int index) {
+    setState(() => _i = index);
+    _scheduleReveal();
+  }
+
+  void _revealNow() {
+    _revealTimer?.cancel();
+    setState(() => _revealed = true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +307,29 @@ class _RosaryPrayScreenState extends State<RosaryPrayScreen> {
                       SoftCard(
                         highlight: true,
                         padding: const EdgeInsets.all(20),
-                        child: Text(step.body, style: AppTheme.verse),
+                        onTap: step.split && !_revealed ? _revealNow : null,
+                        child: step.split
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(_avemaria1, style: AppTheme.verse),
+                                  const SizedBox(height: 16),
+                                  AnimatedOpacity(
+                                    opacity: _revealed ? 1 : 0,
+                                    duration: const Duration(milliseconds: 900),
+                                    child: Text(_avemaria2, style: AppTheme.verse),
+                                  ),
+                                  if (!_revealed)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10),
+                                      child: Text('Toca para ver la respuesta…',
+                                          style: TextStyle(
+                                              fontSize: 12.5,
+                                              color: AppColors.inkSoft)),
+                                    ),
+                                ],
+                              )
+                            : Text(step.body, style: AppTheme.verse),
                       ),
                     ],
                   ),
@@ -283,7 +342,7 @@ class _RosaryPrayScreenState extends State<RosaryPrayScreen> {
                   children: [
                     if (_i > 0)
                       OutlinedButton(
-                        onPressed: () => setState(() => _i--),
+                        onPressed: () => _goTo(_i - 1),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.blueDeep,
                           side: BorderSide(color: AppColors.blue.withOpacity(.4)),
@@ -296,7 +355,7 @@ class _RosaryPrayScreenState extends State<RosaryPrayScreen> {
                     Expanded(
                       child: FilledButton(
                         onPressed: _i < _steps.length - 1
-                            ? () => setState(() => _i++)
+                            ? () => _goTo(_i + 1)
                             : () => Navigator.of(context).maybePop(),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.gold,
@@ -359,13 +418,18 @@ class _Step {
   final String title;
   final String body;
   final int? beadOf; // posición 1..10 dentro de la decena, si aplica
-  const _Step(this.phase, this.title, this.body, {this.beadOf});
+  final bool split; // Ave María: revelar la segunda parte tras una pausa
+  const _Step(this.phase, this.title, this.body, {this.beadOf, this.split = false});
 }
 
 const _padrenuestro =
     'Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo. Danos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal. Amén.';
-const _avemaria =
-    'Dios te salve, María, llena eres de gracia; el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús. Santa María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén.';
+// El Ave María se reza en dos partes: se enuncia la primera y se responde la segunda.
+const _avemaria1 =
+    'Dios te salve, María, llena eres de gracia; el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.';
+const _avemaria2 =
+    'Santa María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén.';
+const _avemaria = '$_avemaria1 $_avemaria2';
 const _gloria =
     'Gloria al Padre, y al Hijo, y al Espíritu Santo. Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén.';
 const _salve =
@@ -376,9 +440,9 @@ List<_Step> _buildSteps(MysterySet set) {
     const _Step('Para comenzar', 'Señal de la Cruz',
         'Por la señal de la Santa Cruz, de nuestros enemigos líbranos, Señor, Dios nuestro. En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén.'),
     const _Step('Para comenzar', 'Padre Nuestro', _padrenuestro),
-    const _Step('Fe, esperanza y caridad', 'Ave María (1ª)', _avemaria),
-    const _Step('Fe, esperanza y caridad', 'Ave María (2ª)', _avemaria),
-    const _Step('Fe, esperanza y caridad', 'Ave María (3ª)', _avemaria),
+    const _Step('Fe, esperanza y caridad', 'Ave María (1ª)', _avemaria, split: true),
+    const _Step('Fe, esperanza y caridad', 'Ave María (2ª)', _avemaria, split: true),
+    const _Step('Fe, esperanza y caridad', 'Ave María (3ª)', _avemaria, split: true),
     const _Step('Para comenzar', 'Gloria', _gloria),
   ];
 
@@ -391,7 +455,7 @@ List<_Step> _buildSteps(MysterySet set) {
         _padrenuestro));
     for (var b = 1; b <= 10; b++) {
       steps.add(_Step('Decena ${m + 1} de 5', 'Ave María', _avemaria,
-          beadOf: b));
+          beadOf: b, split: true));
     }
     steps.add(_Step('Decena ${m + 1}', 'Gloria', _gloria));
     steps.add(_Step('Decena ${m + 1}', 'Oración de Fátima', Rosary.fatima));
