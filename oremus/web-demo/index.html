@@ -1,0 +1,504 @@
+<title>Oremus · Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Oremus — oraciones y rezos católicos, Rosario guiado, misas cercanas y adoración. Demo web.">
+<meta name="theme-color" content="#dcebfb">
+<style>
+  :root{
+    --sky-1:#f3f8ff; --sky-2:#dcebfb;
+    --blue:#5b87c4; --blue-deep:#3f6bad; --blue-soft:#a9c7e8;
+    --gold:#c68f2c; --gold-bright:#e6b45a;
+    --ink:#26344f; --ink-soft:#7488a4; --hairline:#cadcef; --card:#fff;
+    --verse:#3a4b6a;
+    --display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:var(--ui); color:var(--ink);
+    background:linear-gradient(160deg,#c4d6ee,#9fb9de);
+    display:flex; align-items:center; justify-content:center;
+  }
+  #frame{
+    position:relative; width:100%; max-width:420px; height:100%; max-height:900px;
+    background:linear-gradient(180deg,var(--sky-1),var(--sky-2) 72%);
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  @media(min-width:480px){
+    #frame{height:92vh; border-radius:38px; box-shadow:0 40px 80px -24px rgba(38,52,79,.5);
+      border:10px solid #d7e3f2;}
+  }
+  header.bar{padding:calc(env(safe-area-inset-top) + 14px) 20px 8px; display:flex; align-items:center; gap:10px; flex:none}
+  header.bar .back{border:none;background:none;color:var(--gold);font-size:26px;line-height:1;cursor:pointer;padding:2px 6px 2px 0;display:none}
+  header.bar h1{font-family:var(--display); font-weight:500; font-size:26px; margin:0; letter-spacing:.2px}
+  header.bar .spark{margin-left:auto;display:flex}
+  main{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:4px 18px 24px}
+  nav.tabs{flex:none; display:flex; justify-content:space-around; align-items:center;
+    background:rgba(255,255,255,.94); border-top:1px solid rgba(110,151,201,.22);
+    padding:8px 4px calc(env(safe-area-inset-bottom) + 8px); backdrop-filter:blur(8px)}
+  nav.tabs button{border:none;background:none;cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;gap:3px;color:#9aabc4;font-family:var(--ui);padding:4px 8px;border-radius:12px}
+  nav.tabs button.on{color:var(--gold)}
+  nav.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  nav.tabs span{font-size:10.5px;font-weight:600}
+  .kicker{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700}
+  h2.t{font-family:var(--display);font-weight:500;margin:2px 0}
+  .sub{color:var(--ink-soft);font-size:13.5px;margin:2px 0 14px}
+  .card{background:var(--card);border:1px solid rgba(110,151,201,.2);border-radius:18px;
+    padding:16px;margin-bottom:12px;box-shadow:0 6px 16px -10px rgba(63,107,173,.35)}
+  .card.hero{background:linear-gradient(180deg,#fff,#f4f8ff);border-color:rgba(198,143,44,.32)}
+  .verse{font-family:var(--display);font-style:italic;line-height:1.6;color:var(--verse);font-size:16.5px}
+  .muted{color:var(--ink-soft);font-size:12.5px}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer;text-align:left;width:100%;
+    background:none;border:none;font-family:var(--ui)}
+  .row+.row{border-top:1px solid rgba(110,151,201,.14)}
+  .ic{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(160deg,#fbf1da,#f6e6c4);border:1px solid rgba(198,143,44,.3)}
+  .ic svg{width:21px;height:21px;stroke:var(--gold);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .row .tx{flex:1;min-width:0}
+  .row .tx .rt{font-size:15px;font-weight:600;color:var(--ink)}
+  .row .tx .rs{font-size:12px;color:var(--ink-soft)}
+  .chev{color:var(--gold);font-size:22px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+    font-family:var(--ui);font-weight:600;font-size:15px;border-radius:13px;padding:14px 18px;width:100%}
+  .btn.gold{background:var(--gold);color:#fff}
+  .btn.ghost{background:none;border:1.5px solid rgba(91,135,196,.4);color:var(--blue-deep)}
+  .chip{display:inline-block;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;
+    border:1px solid rgba(110,151,201,.3);background:#fff;color:var(--ink);margin:0 6px 6px 0;cursor:pointer}
+  .chip.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .beads{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .bead{width:16px;height:16px;border-radius:50%;background:rgba(110,151,201,.4)}
+  .bead.done{background:var(--gold-bright)} .bead.now{background:var(--gold);box-shadow:0 0 0 3px rgba(230,180,90,.3)}
+  .prog{height:6px;border-radius:6px;background:rgba(110,151,201,.3);overflow:hidden;flex:1}
+  .prog > i{display:block;height:100%;background:var(--gold);border-radius:6px;transition:width .2s}
+  .ring{display:block;margin:6px auto}
+  .device-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--blue-deep);
+    background:#fff;border:1px solid rgba(110,151,201,.3);border-radius:999px;padding:5px 12px}
+  #panel{position:fixed;left:12px;right:12px;bottom:12px;max-width:400px;margin:auto;z-index:50;
+    background:#0e1830;color:#eaf1fb;border-radius:16px;padding:14px 16px;display:none;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);font-size:13px}
+  #panel h3{margin:0 0 8px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-bright)}
+  #panel .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+  #panel .n{font-size:22px;font-weight:700;font-family:var(--display)}
+  #panel small{color:#9fb3d4}
+  #panel .x{position:absolute;top:10px;right:12px;cursor:pointer;color:#9fb3d4}
+  a{color:var(--blue-deep)}
+</style>
+
+<div id="frame">
+  <header class="bar">
+    <button class="back" id="back" aria-label="Atrás">‹</button>
+    <h1 id="title">Oremus</h1>
+    <span class="spark" id="spark"></span>
+  </header>
+  <main id="view"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+
+<div id="panel">
+  <span class="x" onclick="document.getElementById('panel').style.display='none'">✕</span>
+  <h3>Impacto (este navegador)</h3>
+  <div class="grid">
+    <div><div class="n" id="pA">0</div><small>Android</small></div>
+    <div><div class="n" id="pI">0</div><small>iOS</small></div>
+    <div><div class="n" id="pD">0</div><small>Escritorio</small></div>
+  </div>
+  <p class="muted" style="color:#9fb3d4;margin:10px 0 0">Los totales de todos los visitantes se ven en tu panel de analítica (ver README).</p>
+</div>
+
+<script>
+/* ============================================================= *
+ *  ANALÍTICA DE PLATAFORMA  (Android / iOS / Escritorio)
+ *  Pon tu código de GoatCounter (gratis, sin cookies) o usa
+ *  Cloudflare Web Analytics. Instrucciones en web-demo/README.md
+ * ============================================================= */
+const ANALYTICS = { goatcounterCode: "" }; // p.ej. "oremus" -> oremus.goatcounter.com
+
+function detectPlatform(){
+  const ua = navigator.userAgent || "";
+  if(/android/i.test(ua)) return "Android";
+  if(/iphone|ipad|ipod/i.test(ua)) return "iOS";
+  if(/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return "iOS"; // iPadOS
+  return "Escritorio";
+}
+const PLATFORM = detectPlatform();
+
+function bump(){
+  try{
+    const k="oremus.demo.counts";
+    const c=JSON.parse(localStorage.getItem(k)||"{}");
+    c[PLATFORM]=(c[PLATFORM]||0)+1;
+    localStorage.setItem(k,JSON.stringify(c));
+  }catch(e){}
+}
+function renderPanel(){
+  const p=new URLSearchParams(location.search);
+  if(p.get("panel")!=="1")return;
+  const c=JSON.parse(localStorage.getItem("oremus.demo.counts")||"{}");
+  document.getElementById("pA").textContent=c["Android"]||0;
+  document.getElementById("pI").textContent=c["iOS"]||0;
+  document.getElementById("pD").textContent=c["Escritorio"]||0;
+  document.getElementById("panel").style.display="block";
+}
+function sendAnalytics(){
+  const code=ANALYTICS.goatcounterCode;
+  if(!code) return;
+  const s=document.createElement("script");
+  s.async=true; s.src="//gc.zgo.at/count.js";
+  s.setAttribute("data-goatcounter","https://"+code+".goatcounter.com/count");
+  s.onload=function(){
+    if(window.goatcounter&&window.goatcounter.count){
+      window.goatcounter.count({path:"plataforma/"+PLATFORM,title:"Plataforma "+PLATFORM,event:true});
+    }
+  };
+  document.body.appendChild(s);
+}
+
+/* ============================================================= *
+ *  ICONOS (solo trazo, heredan color por CSS)
+ * ============================================================= */
+const SVG = {
+  cross:'<svg viewBox="0 0 24 24"><path d="M12 3v16M6.5 8.5h11"/></svg>',
+  heart:'<svg viewBox="0 0 24 24"><path d="M12 20c5-3 7-6.4 7-10a4.6 4.6 0 00-7-3.8A4.6 4.6 0 005 10c0 3.6 2 7 7 10z"/></svg>',
+  fire:'<svg viewBox="0 0 24 24"><path d="M12 4c1.6 3 5 3.2 5 7a5 5 0 01-10 0c0-2 1-3 2.2-4C10 8 12 7 12 4z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M18.5 5.5L17 7M7 17l-1.5 1.5"/></svg>',
+  church:'<svg viewBox="0 0 24 24"><path d="M12 21c4.6-3 6.5-6.2 6.5-10a6.5 6.5 0 10-13 0c0 3.8 1.9 7 6.5 10z"/><circle cx="12" cy="11" r="2.3"/></svg>',
+  host:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
+  book:'<svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6z"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>',
+  rosary:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="6.5"/><circle cx="12" cy="4" r="1.6"/><path d="M12 6.5v0"/></svg>',
+  pin:'<svg viewBox="0 0 24 24"><path d="M12 21c4.6-3 6.5-6.2 6.5-10a6.5 6.5 0 10-13 0c0 3.8 1.9 7 6.5 10z"/></svg>',
+  home:'<svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-5h-6v5H5a1 1 0 01-1-1z"/></svg>'
+};
+const STAR='<svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 2l1.6 8.4L22 12l-8.4 1.6L12 22l-1.6-8.4L2 12l8.4-1.6z" fill="#e6b45a"/></svg>';
+
+/* ============================================================= *
+ *  CONTENIDO  (subconjunto real de la app)
+ * ============================================================= */
+const CATS = [
+  {id:'fund', title:'Fundamentales', sub:'Padre Nuestro · Ave María · Credo', icon:'cross', prayers:[
+    {t:'Señal de la Cruz', p:['Por la señal de la Santa Cruz, de nuestros enemigos líbranos, Señor, Dios nuestro.','En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén.']},
+    {t:'Padre Nuestro', p:['Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo.','Danos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal. Amén.']},
+    {t:'Ave María', p:['Dios te salve, María, llena eres de gracia; el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.','Santa María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén.']},
+    {t:'Gloria', p:['Gloria al Padre, y al Hijo, y al Espíritu Santo.','Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén.']},
+    {t:'Credo de los Apóstoles', p:['Creo en Dios, Padre todopoderoso, Creador del cielo y de la tierra.','Creo en Jesucristo, su único Hijo, nuestro Señor, que fue concebido por obra y gracia del Espíritu Santo, nació de Santa María Virgen, padeció bajo el poder de Poncio Pilato, fue crucificado, muerto y sepultado, descendió a los infiernos, al tercer día resucitó de entre los muertos, subió a los cielos y está sentado a la derecha de Dios, Padre todopoderoso. Desde allí ha de venir a juzgar a vivos y muertos.','Creo en el Espíritu Santo, la santa Iglesia católica, la comunión de los santos, el perdón de los pecados, la resurrección de la carne y la vida eterna. Amén.']},
+    {t:'Acto de Contrición', p:['Señor mío Jesucristo, Dios y Hombre verdadero, Creador, Padre y Redentor mío; por ser Tú quien eres, Bondad infinita, y porque te amo sobre todas las cosas, me pesa de todo corazón haberte ofendido.','Ayudado de tu divina gracia, propongo firmemente nunca más pecar, confesarme y cumplir la penitencia que me fuere impuesta. Amén.']},
+    {t:'Ángel de mi Guarda', p:['Ángel de mi guarda, dulce compañía, no me desampares ni de noche ni de día.','No me dejes solo, que me perdería. Amén.']}
+  ]},
+  {id:'maria', title:'A la Virgen María', sub:'Salve · Ángelus · Acordaos', icon:'heart', prayers:[
+    {t:'Salve', p:['Dios te salve, Reina y Madre de misericordia, vida, dulzura y esperanza nuestra; Dios te salve.','A Ti llamamos los desterrados hijos de Eva; a Ti suspiramos, gimiendo y llorando, en este valle de lágrimas.','Ea, pues, Señora, abogada nuestra, vuelve a nosotros esos tus ojos misericordiosos; y después de este destierro, muéstranos a Jesús, fruto bendito de tu vientre.','¡Oh clemente, oh piadosa, oh dulce Virgen María! Amén.']},
+    {t:'Acordaos', p:['Acordaos, oh piadosísima Virgen María, que jamás se ha oído decir que ninguno de los que han acudido a tu protección, implorando tu auxilio y reclamando tu socorro, haya sido desamparado de Ti.','Animado con esta confianza, a Ti también acudo, oh Madre, Virgen de las vírgenes. No deseches mis súplicas, antes bien, escúchalas y acógelas benignamente. Amén.']},
+    {t:'Bajo tu amparo', p:['Bajo tu amparo nos acogemos, Santa Madre de Dios; no deseches las súplicas que te dirigimos en nuestras necesidades; antes bien, líbranos de todo peligro, oh Virgen gloriosa y bendita. Amén.']},
+    {t:'A San Miguel Arcángel', p:['San Miguel Arcángel, defiéndenos en la batalla. Sé nuestro amparo contra la perversidad y asechanzas del demonio.','Y tú, Príncipe de la milicia celestial, arroja al infierno con el divino poder a Satanás y a los otros espíritus malignos que andan por el mundo para la perdición de las almas. Amén.']}
+  ]},
+  {id:'es', title:'Al Espíritu Santo', sub:'Ven Espíritu Santo', icon:'fire', prayers:[
+    {t:'Ven, Espíritu Santo', p:['Ven, Espíritu Santo, llena los corazones de tus fieles y enciende en ellos el fuego de tu amor.','Envía tu Espíritu y serán creados. Y renovarás la faz de la tierra.','Oh Dios, que has iluminado los corazones de tus hijos con la luz del Espíritu Santo; concédenos que, guiados por el mismo Espíritu, sintamos con rectitud y gocemos siempre de tu consuelo. Amén.']}
+  ]},
+  {id:'mn', title:'Mañana y noche', sub:'Ofrecimiento · bendición de la mesa', icon:'sun', prayers:[
+    {t:'Ofrecimiento de la mañana', p:['Señor, al comenzar este día quiero ofrecerte mis pensamientos, palabras, obras y sufrimientos, en unión con tu Hijo Jesucristo.','Te ofrezco todo lo que haga y viva hoy, por tu mayor gloria y por la salvación de las almas. María, Madre mía, acompáñame en esta jornada. Amén.']},
+    {t:'Oración de la noche', p:['Señor, antes de dormir te doy gracias por este día y por todo el bien que me has dado. Perdona lo que en él te haya ofendido.','Te encomiendo mi descanso y el de todos mis seres queridos. Que tus ángeles nos guarden esta noche. Amén.']},
+    {t:'Bendición de la mesa', p:['Bendícenos, Señor, y bendice estos alimentos que por tu bondad vamos a recibir. Da pan a los que tienen hambre, y hambre de Ti a los que tenemos pan. Por Jesucristo, nuestro Señor. Amén.']}
+  ]},
+  {id:'misa', title:'Santa Misa', sub:'Antes y después · comunión', icon:'church', prayers:[
+    {t:'Oración antes de la Misa', p:['Señor Jesús, me dispongo a participar en el santo sacrificio de tu Misa. Ayúdame a dejar fuera las prisas y preocupaciones, y a estar aquí de todo corazón.','Que sepa escuchar tu Palabra, unirme a tu ofrenda y recibirte con fe y amor en la Comunión. María, ayúdame a vivir esta Misa como si fuera la única de mi vida. Amén.']},
+    {t:'Comunión espiritual', p:['Creo, Jesús mío, que estás realmente presente en el Santísimo Sacramento del altar. Te amo sobre todas las cosas y deseo recibirte dentro de mi alma.','Ya que ahora no puedo recibirte sacramentalmente, ven al menos espiritualmente a mi corazón. Como si ya te hubiese recibido, te abrazo y me uno del todo a Ti; no permitas que jamás me separe de Ti. Amén.']},
+    {t:'Alma de Cristo', p:['Alma de Cristo, santifícame. Cuerpo de Cristo, sálvame. Sangre de Cristo, embriágame. Agua del costado de Cristo, lávame.','Pasión de Cristo, confórtame. ¡Oh, buen Jesús!, óyeme. Dentro de tus llagas, escóndeme. No permitas que me aparte de Ti.','En la hora de mi muerte, llámame. Y mándame ir a Ti, para que con tus santos te alabe por los siglos de los siglos. Amén.']},
+    {t:'Después de comulgar', p:['Jesús, gracias por venir a mi corazón. Quédate conmigo, porque sin Ti me pierdo. Que tu presencia me transforme y salga de esta Misa dispuesto a amar como Tú amas.','Bendice a mi familia, a los que sufren y a los que me han pedido oración. Que un día pueda contemplarte cara a cara. Amén.']}
+  ]},
+  {id:'sant', title:'Ante el Santísimo', sub:'Visita y adoración', icon:'host', prayers:[
+    {t:'Visita al Santísimo', p:['Jesús Sacramentado, creo que estás aquí, verdaderamente presente en la Eucaristía. Vengo a hacerte compañía y a dejarme mirar por Ti.','Te adoro, te doy gracias, te pido perdón y te presento mi vida. No necesito muchas palabras: me basta estar contigo. Amén.']}
+  ]}
+];
+
+const MYSTERIES = {
+  gozosos:{name:'Misterios Gozosos', days:'Lunes y sábado', list:[
+    ['La Encarnación del Hijo de Dios','Lucas 1, 26-38'],['La Visitación a Santa Isabel','Lucas 1, 39-56'],
+    ['El Nacimiento de Jesús en Belén','Lucas 2, 1-20'],['La Presentación en el templo','Lucas 2, 22-39'],
+    ['El Niño Jesús hallado en el templo','Lucas 2, 41-52']]},
+  luminosos:{name:'Misterios Luminosos', days:'Jueves', list:[
+    ['El Bautismo de Jesús en el Jordán','Mateo 3, 13-17'],['Las bodas de Caná','Juan 2, 1-11'],
+    ['El anuncio del Reino de Dios','Marcos 1, 14-15'],['La Transfiguración','Lucas 9, 28-36'],
+    ['La institución de la Eucaristía','Lucas 22, 14-20']]},
+  dolorosos:{name:'Misterios Dolorosos', days:'Martes y viernes', list:[
+    ['La oración en el huerto','Lucas 22, 39-46'],['La flagelación del Señor','Juan 19, 1'],
+    ['La coronación de espinas','Mateo 27, 27-31'],['Jesús con la cruz a cuestas','Lucas 23, 26-32'],
+    ['La crucifixión y muerte de Jesús','Juan 19, 17-30']]},
+  gloriosos:{name:'Misterios Gloriosos', days:'Miércoles y domingo', list:[
+    ['La Resurrección del Señor','Mateo 28, 1-10'],['La Ascensión del Señor','Hechos 1, 6-11'],
+    ['La venida del Espíritu Santo','Hechos 2, 1-13'],['La Asunción de María','Apocalipsis 12, 1'],
+    ['La coronación de María','Judit 15, 9-10']]}
+};
+function mysteriesForToday(){
+  const d=new Date().getDay();
+  if(d===1||d===6) return MYSTERIES.gozosos;
+  if(d===2||d===5) return MYSTERIES.dolorosos;
+  if(d===3||d===0) return MYSTERIES.gloriosos;
+  return MYSTERIES.luminosos;
+}
+const GUIDE=[
+  ['La señal de la Cruz','Toma el crucifijo y haz la señal de la Cruz. Puedes rezar el Credo.'],
+  ['Padre Nuestro y tres Ave Marías','Un Padre Nuestro, tres Ave Marías (fe, esperanza y caridad) y un Gloria.'],
+  ['Enuncia el misterio','Según el día, di el misterio y medita. Reza un Padre Nuestro.'],
+  ['Diez Ave Marías','En las diez cuentas de la decena reza un Ave María contemplando el misterio.'],
+  ['Gloria y jaculatoria','Al terminar la decena, un Gloria y la oración de Fátima.'],
+  ['Repite los cinco misterios','Continúa igual hasta completar las cinco decenas.'],
+  ['Oraciones finales','Termina con la Salve. Haz la señal de la Cruz.']
+];
+const PN='Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo. Danos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal. Amén.';
+const AM='Dios te salve, María, llena eres de gracia; el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús. Santa María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén.';
+const GL='Gloria al Padre, y al Hijo, y al Espíritu Santo. Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén.';
+const FA='Oh Jesús mío, perdónanos nuestros pecados, líbranos del fuego del infierno, lleva al cielo a todas las almas, especialmente a las más necesitadas de tu misericordia. Amén.';
+const SALVE='Dios te salve, Reina y Madre de misericordia, vida, dulzura y esperanza nuestra; Dios te salve… ¡Oh clemente, oh piadosa, oh dulce Virgen María!';
+
+const ADORATION=[
+  ['Ponerse en presencia','Haz la señal de la Cruz. Serénate. Jesús está aquí, vivo y verdadero. No vienes a hacer cosas, sino a estar con Él. Dile: «Aquí estoy, Señor.»'],
+  ['Adorar','«Te adoro, Jesús Sacramentado. Tú eres mi Dios y mi Señor.» Deja que tu corazón se incline ante tanto amor escondido en la Hostia.'],
+  ['Dar gracias','Recuerda los dones de tu vida: la fe, quienes amas, el pan de cada día. «Gracias, Señor, por todo lo que me has dado.»'],
+  ['Pedir perdón','Mira tu corazón con paz. «Ten piedad de mí, Señor. Purifica lo que hay de sombra en mí y sáname.»'],
+  ['Escuchar y contemplar','Ahora calla y escucha. Deja que sea Él quien te mire. «Habla, Señor, que tu siervo escucha.»'],
+  ['Ofrecer y pedir','Presenta a Jesús tu familia, los enfermos, la Iglesia, el mundo. Ofrécele tu jornada unida a la suya.'],
+  ['Con María, despedirse','Reza un Ave María. «Quédate conmigo, Señor, para que salga llevándote a los demás.» Haz la señal de la Cruz.']
+];
+const VERSES=[
+  ['«Venid a mí todos los que estáis cansados y agobiados, y yo os aliviaré.»','Mateo 11, 28'],
+  ['«El Señor es mi pastor, nada me falta.»','Salmo 23, 1'],
+  ['«Todo lo puedo en Aquel que me conforta.»','Filipenses 4, 13'],
+  ['«No temas, porque yo estoy contigo.»','Isaías 41, 10'],
+  ['«Buscad primero el Reino de Dios y su justicia.»','Mateo 6, 33']
+];
+
+/* ============================================================= *
+ *  NAVEGACIÓN Y RENDER
+ * ============================================================= */
+const view=document.getElementById('view'), titleEl=document.getElementById('title'),
+      backBtn=document.getElementById('back'), tabsEl=document.getElementById('tabs');
+let stack=[];
+
+const TABS=[
+  {id:'inicio', label:'Inicio', icon:'home'},
+  {id:'oraciones', label:'Oraciones', icon:'book'},
+  {id:'rosario', label:'Rosario', icon:'rosary'},
+  {id:'misas', label:'Misas', icon:'pin'},
+  {id:'adorar', label:'Adorar', icon:'host'}
+];
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function renderTabs(active){
+  tabsEl.innerHTML=TABS.map(t=>`<button class="${t.id===active?'on':''}" onclick="go('${t.id}')">${SVG[t.icon]}<span>${t.label}</span></button>`).join('');
+}
+function setHeader(title, canBack){ titleEl.textContent=title; backBtn.style.display=canBack?'block':'none'; }
+backBtn.onclick=()=>{ if(stack.length>1){stack.pop(); render(stack[stack.length-1]);} };
+
+const rowHTML=(icon,rt,rs,onclick)=>`<button class="row" onclick="${onclick}"><span class="ic">${SVG[icon]}</span><span class="tx"><span class="rt">${esc(rt)}</span>${rs?`<span class="rs">${esc(rs)}</span>`:''}</span><span class="chev">›</span></button>`;
+
+function go(tab){ stack=[{v:tab}]; render({v:tab}); renderTabs(tab); }
+function push(state){ stack.push(state); render(state); }
+
+function render(state){
+  const v=state.v; view.scrollTop=0;
+  ({inicio:renderInicio, oraciones:renderOraciones, cat:()=>renderCat(state.cat),
+    prayer:()=>renderPrayer(state.cat,state.i), rosario:renderRosario, guia:renderGuia,
+    rezo:renderRezo, misas:renderMisas, adorar:renderAdorar}[v])();
+}
+
+function renderInicio(){
+  renderTabs('inicio'); setHeader('Oremus',false);
+  const h=new Date().getHours();
+  const saludo=h<12?'Buenos días':h<20?'Buenas tardes':'Buenas noches';
+  const vs=VERSES[Math.floor(Date.now()/8.64e7)%VERSES.length];
+  const my=mysteriesForToday();
+  view.innerHTML=`
+    <div style="margin:8px 0 2px"><span class="device-chip">📱 Estás en&nbsp;<b>${PLATFORM}</b></span></div>
+    <h2 class="t" style="font-size:30px">${saludo}</h2>
+    <p class="sub">${new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'})}</p>
+    <div class="card hero">
+      <div class="kicker">Palabra del día</div>
+      <p class="verse" style="font-size:18px;margin:12px 0 8px">${vs[0]}</p>
+      <p class="muted" style="font-weight:600">${vs[1]}</p>
+    </div>
+    <div class="kicker" style="margin:16px 0 8px">Para hoy</div>
+    <div class="card" style="padding:4px 16px">
+      ${rowHTML('rosary','Rosario de hoy',my.name+' · '+my.days,"go('rosario')")}
+      ${rowHTML('pin','Misas cerca de ti','Según tu ubicación',"go('misas')")}
+      ${rowHTML('host','15 min ante el Santísimo','Adoración guiada',"go('adorar')")}
+      ${rowHTML('book','Oraciones','Antes y después de misa, y más',"go('oraciones')")}
+    </div>`;
+}
+function renderOraciones(){
+  renderTabs('oraciones'); setHeader('Oraciones',false);
+  const n=CATS.reduce((a,c)=>a+c.prayers.length,0);
+  view.innerHTML=`<p class="sub">${n} rezos · toca una categoría</p>
+    <div class="card" style="padding:4px 16px">
+      ${CATS.map(c=>rowHTML(c.icon,c.title,c.sub,`push({v:'cat',cat:'${c.id}'})`)).join('')}
+    </div>`;
+}
+function renderCat(id){
+  const c=CATS.find(x=>x.id===id);
+  renderTabs('oraciones'); setHeader(c.title,true);
+  view.innerHTML=`<div class="card" style="padding:4px 16px">
+    ${c.prayers.map((p,i)=>rowHTML(c.icon,p.t, p.p[0].slice(0,52)+'…', `push({v:'prayer',cat:'${id}',i:${i}})`)).join('')}
+  </div>`;
+}
+function renderPrayer(id,i){
+  const c=CATS.find(x=>x.id===id), p=c.prayers[i];
+  renderTabs('oraciones'); setHeader(p.t,true);
+  view.innerHTML=`<div class="card hero">${p.p.map(x=>`<p class="verse" style="margin:0 0 16px">${x}</p>`).join('')}</div>`;
+}
+function renderRosario(){
+  renderTabs('rosario'); setHeader('Santo Rosario',false);
+  const my=mysteriesForToday();
+  view.innerHTML=`
+    <div class="card hero">
+      <div class="kicker">Rosario de hoy</div>
+      <h2 class="t" style="font-size:24px;margin:8px 0 2px">${my.name}</h2>
+      <p class="muted">${my.days}</p>
+      <button class="btn gold" style="margin-top:14px" onclick="push({v:'rezo'})">▶ Rezar guiado</button>
+    </div>
+    <div class="card" style="padding:4px 16px">
+      ${rowHTML('book','Cómo se reza, paso a paso','Con las oraciones y qué misterios según el día',"push({v:'guia'})")}
+    </div>
+    <div class="kicker" style="margin:16px 0 8px">Todos los misterios</div>
+    <div class="card" style="padding:4px 16px">
+      ${Object.values(MYSTERIES).map(m=>rowHTML('rosary',m.name,m.days,"push({v:'rezo'})")).join('')}
+    </div>`;
+}
+function renderGuia(){
+  renderTabs('rosario'); setHeader('Cómo rezar el Rosario',true);
+  view.innerHTML=GUIDE.map((s,i)=>`<div class="card"><div style="display:flex;gap:14px">
+    <div style="flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;display:grid;place-items:center;font-weight:700">${i+1}</div>
+    <div><div style="font-family:var(--display);font-size:18px">${s[0]}</div><div class="muted" style="font-size:14px;margin-top:2px">${s[1]}</div></div>
+  </div></div>`).join('') + `<div class="card hero"><div class="kicker">Oración de Fátima</div><p class="verse" style="margin-top:8px">${FA}</p></div>`;
+}
+let rezoSteps=[], rezoI=0;
+function buildRezo(){
+  const my=mysteriesForToday(); const s=[];
+  s.push(['Para comenzar','Señal de la Cruz','Por la señal de la Santa Cruz… En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén.',null]);
+  s.push(['Para comenzar','Padre Nuestro',PN,null]);
+  for(let k=1;k<=3;k++) s.push(['Fe, esperanza y caridad','Ave María ('+k+'ª)',AM,null]);
+  s.push(['Para comenzar','Gloria',GL,null]);
+  my.list.forEach((m,mi)=>{
+    s.push([(mi+1)+'º misterio · '+my.name,m[0],m[1],null]);
+    s.push(['Decena '+(mi+1),'Padre Nuestro',PN,null]);
+    for(let b=1;b<=10;b++) s.push(['Decena '+(mi+1)+' de 5','Ave María',AM,b]);
+    s.push(['Decena '+(mi+1),'Gloria',GL,null]);
+    s.push(['Decena '+(mi+1),'Oración de Fátima',FA,null]);
+  });
+  s.push(['Para terminar','Salve',SALVE,null]);
+  return s;
+}
+function renderRezo(){
+  renderTabs('rosario'); setHeader('Rezar el Rosario',true);
+  if(!rezoSteps.length){rezoSteps=buildRezo();rezoI=0;}
+  drawRezo();
+}
+function rezoNext(){ if(rezoI<rezoSteps.length-1){ rezoI++; drawRezo(); } else { rezoSteps=[]; go('rosario'); } }
+function rezoPrev(){ if(rezoI>0){ rezoI--; drawRezo(); } }
+function drawRezo(){
+  const st=rezoSteps[rezoI], pct=Math.round((rezoI+1)/rezoSteps.length*100);
+  let beads='';
+  if(st[3]!==null){ beads='<div class="beads">'+Array.from({length:10},(_,k)=>{const n=k+1;const cl=n<st[3]?'done':n===st[3]?'now':'';return '<span class="bead '+cl+'"></span>';}).join('')+'</div>'; }
+  view.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin:6px 0 14px">
+      <div class="prog"><i style="width:${pct}%"></i></div>
+      <span class="muted" style="font-weight:600">${rezoI+1}/${rezoSteps.length}</span>
+    </div>
+    <div class="kicker">${st[0]}</div>
+    <h2 class="t" style="font-size:26px;margin:8px 0">${st[1]}</h2>
+    ${beads}
+    <div class="card hero"><p class="verse">${st[2]}</p></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      ${rezoI>0?'<button class="btn ghost" style="flex:0 0 40%" onclick="rezoPrev()">Anterior</button>':''}
+      <button class="btn gold" onclick="rezoNext()">${rezoI<rezoSteps.length-1?'Siguiente':'Terminar'}</button>
+    </div>`;
+}
+function renderMisas(){
+  renderTabs('misas'); setHeader('Misas cerca',false);
+  view.innerHTML=`
+    <p class="sub">Encuentra iglesias y parroquias católicas cerca de ti y abre las indicaciones para llegar.</p>
+    <div id="misasCard" class="card hero" style="text-align:center;padding:24px">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(198,143,44,.14);display:grid;place-items:center;margin:0 auto 14px">
+        <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:var(--gold);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M12 21c4.6-3 6.5-6.2 6.5-10a6.5 6.5 0 10-13 0c0 3.8 1.9 7 6.5 10z"/><circle cx="12" cy="11" r="2.3"/></svg>
+      </div>
+      <h2 class="t" style="font-size:22px">Buscar cerca de mí</h2>
+      <p class="muted" style="margin:6px 0 16px">Usaremos tu ubicación solo en este momento para mostrarte iglesias cercanas.</p>
+      <button class="btn gold" onclick="locate()">📍 Usar mi ubicación</button>
+    </div>
+    <div class="card"><div class="muted">Los horarios exactos de cada misa los publica la propia parroquia. Al abrir Mapas verás su ficha con teléfono y web para confirmarlos. Tu ubicación se usa solo aquí y no se guarda.</div></div>`;
+}
+function locate(){
+  const c=document.getElementById('misasCard');
+  if(!navigator.geolocation){ c.innerHTML='<p class="muted">Tu navegador no permite geolocalización. <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/iglesia+catolica+cerca">Buscar iglesias en Mapas</a></p>'; return; }
+  c.innerHTML='<p class="muted">Buscando tu ubicación…</p>';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const la=pos.coords.latitude, lo=pos.coords.longitude;
+    c.innerHTML=`<div class="kicker">Ubicación lista</div>
+      <p class="muted" style="margin:6px 0 14px">Lat ${la.toFixed(4)}, Lon ${lo.toFixed(4)}</p>
+      <a class="btn gold" style="text-decoration:none;margin-bottom:10px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/iglesia+cat%C3%B3lica/@${la},${lo},15z">⛪ Iglesias católicas cercanas</a>
+      <a class="btn ghost" style="text-decoration:none" target="_blank" rel="noopener" href="https://www.google.com/maps/search/horario+de+misa+iglesia/@${la},${lo},14z">🕑 Buscar horarios de misa</a>`;
+  }, err=>{
+    c.innerHTML='<p class="muted">No pudimos obtener tu ubicación ('+esc(err.message)+'). <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/iglesia+catolica+cerca">Buscar iglesias en Mapas</a></p>';
+  }, {enableHighAccuracy:false, timeout:10000});
+}
+let adTimer=null, adRemain=15*60, adTotal=15*60, adRunning=false, adMoment=0, adMinutes=15;
+function renderAdorar(){
+  renderTabs('adorar'); setHeader('Ante el Santísimo',false);
+  clearInterval(adTimer); adRunning=false;
+  view.innerHTML=`
+    <p class="sub">Un rato de adoración guiada, para estar con Jesús presente en la Eucaristía.</p>
+    <div>${[10,15,20,30].map(m=>`<span class="chip ${m===adMinutes?'on':''}" onclick="setAdMin(${m})">${m} min</span>`).join('')}</div>
+    <div class="card hero" style="text-align:center">
+      <canvas id="ring" class="ring" width="200" height="200"></canvas>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn gold" id="adBtn" onclick="toggleAd()">▶ Comenzar</button>
+        <button class="btn ghost" style="flex:0 0 30%" onclick="resetAd()">■</button>
+      </div>
+    </div>
+    <div class="card hero">
+      <div class="kicker" id="adK">Meditación · 1 de ${ADORATION.length}</div>
+      <h2 class="t" id="adT" style="font-size:20px;margin:8px 0">${ADORATION[0][0]}</h2>
+      <p class="verse" id="adP">${ADORATION[0][1]}</p>
+      <div style="display:flex;justify-content:space-between;margin-top:10px">
+        <button class="chip" onclick="moveMoment(-1)">‹ Anterior</button>
+        <button class="chip" onclick="moveMoment(1)">Siguiente ›</button>
+      </div>
+    </div>`;
+  drawRing();
+}
+function setAdMin(m){ adMinutes=m; adTotal=m*60; adRemain=m*60; adMoment=0; renderAdorar(); }
+function toggleAd(){
+  const b=document.getElementById('adBtn');
+  if(adRunning){ clearInterval(adTimer); adRunning=false; b.textContent='▶ Reanudar'; return; }
+  adRunning=true; b.textContent='⏸ Pausar';
+  adTimer=setInterval(()=>{
+    adRemain--;
+    if(adRemain<=0){ adRemain=0; clearInterval(adTimer); adRunning=false; b.textContent='↻ De nuevo'; }
+    const idx=Math.min(ADORATION.length-1, Math.floor((adTotal-adRemain)/adTotal*ADORATION.length));
+    if(idx!==adMoment){ adMoment=idx; updMoment(); }
+    drawRing();
+  },1000);
+}
+function resetAd(){ clearInterval(adTimer); adRunning=false; adRemain=adTotal; adMoment=0; const b=document.getElementById('adBtn'); if(b)b.textContent='▶ Comenzar'; updMoment(); drawRing(); }
+function moveMoment(d){ adMoment=Math.max(0,Math.min(ADORATION.length-1,adMoment+d)); updMoment(); }
+function updMoment(){
+  const K=document.getElementById('adK'); if(!K)return;
+  K.textContent='Meditación · '+(adMoment+1)+' de '+ADORATION.length;
+  document.getElementById('adT').textContent=ADORATION[adMoment][0];
+  document.getElementById('adP').textContent=ADORATION[adMoment][1];
+}
+function drawRing(){
+  const cv=document.getElementById('ring'); if(!cv)return; const ctx=cv.getContext('2d');
+  const w=cv.width, r=80, cx=w/2, cy=w/2; ctx.clearRect(0,0,w,w);
+  ctx.lineWidth=12; ctx.lineCap='round';
+  ctx.strokeStyle='rgba(110,151,201,.35)'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+  const pct=1-adRemain/adTotal;
+  if(pct>0){ ctx.strokeStyle='#c68f2c'; ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+2*Math.PI*pct); ctx.stroke(); }
+  ctx.fillStyle='#26344f'; ctx.textAlign='center'; ctx.font='500 40px Georgia,serif';
+  const m=String(Math.floor(adRemain/60)).padStart(2,'0'), s=String(adRemain%60).padStart(2,'0');
+  ctx.fillText(adRemain===0?'¡Amén!':m+':'+s, cx, cy+8);
+  ctx.fillStyle='#c68f2c'; ctx.font='700 11px system-ui,sans-serif';
+  ctx.fillText(adRemain===0?'COMPLETADA':'RESTANTES', cx, cy+30);
+}
+
+/* Arranque */
+document.getElementById('spark').innerHTML=STAR;
+bump(); renderPanel(); sendAnalytics();
+go('inicio');
+</script>
