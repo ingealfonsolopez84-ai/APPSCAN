@@ -10,9 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  geolocator: ^12.0.0        # ubicación del usuario (iglesias cercanas)
-  url_launcher: ^6.2.6       # abrir Mapas / llamar a la parroquia
-  shared_preferences: ^2.2.3 # favoritos e intenciones guardadas localmente
+  geolocator: ^12.0.0            # ubicación del usuario (iglesias cercanas)
+  url_launcher: ^6.2.6          # abrir Mapas / llamar a la parroquia
+  shared_preferences: ^2.2.3    # favoritos (no sensibles), guardados localmente
+  flutter_secure_storage: ^9.2.2 # intenciones privadas, cifradas (Keychain/Keystore)
 
 dev_dependencies:
   flutter_lints: ^3.0.0
