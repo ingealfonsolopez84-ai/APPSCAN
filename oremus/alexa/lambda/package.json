@@ -1,0 +1,10 @@
+{
+  "name": "oremus-rosario-alexa",
+  "version": "1.0.0",
+  "description": "Skill de Alexa para rezar el Santo Rosario guiado por voz",
+  "main": "index.js",
+  "dependencies": {
+    "ask-sdk-core": "^2.14.0",
+    "ask-sdk-model": "^1.86.0"
+  }
+}

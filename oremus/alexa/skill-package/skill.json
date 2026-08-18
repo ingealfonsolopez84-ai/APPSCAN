@@ -1,0 +1,49 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "es-MX": {
+          "name": "Santo Rosario - Oremus",
+          "summary": "Reza el Santo Rosario guiado por voz, con los misterios de cada día.",
+          "description": "Oremus te guía para rezar el Santo Rosario en voz alta. Di \"Alexa, abre santo rosario\" y reza los misterios que corresponden al día (gozosos, luminosos, dolorosos o gloriosos), o elige los que prefieras. Avanza diciendo \"siguiente\", repite con \"repite\" y termina con \"detente\". Que Dios te bendiga.",
+          "examplePhrases": [
+            "Alexa, abre santo rosario",
+            "Alexa, pídele a santo rosario que rece el rosario",
+            "Alexa, dile a santo rosario que rece los misterios gloriosos"
+          ],
+          "keywords": ["rosario", "católico", "oración", "rezar", "misterios", "virgen", "fe"]
+        },
+        "es-ES": {
+          "name": "Santo Rosario - Oremus",
+          "summary": "Reza el Santo Rosario guiado por voz, con los misterios de cada día.",
+          "description": "Oremus te guía para rezar el Santo Rosario en voz alta. Di \"Alexa, abre santo rosario\" y reza los misterios del día, o elige los que prefieras. Avanza diciendo \"siguiente\", repite con \"repite\" y termina con \"detente\".",
+          "examplePhrases": [
+            "Alexa, abre santo rosario",
+            "Alexa, dile a santo rosario que rece el rosario",
+            "Alexa, dile a santo rosario que rece los misterios dolorosos"
+          ],
+          "keywords": ["rosario", "católico", "oración", "rezar", "misterios"]
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": ["MX", "ES", "US", "AR", "CO", "CL", "PE"],
+      "testingInstructions": "Di 'Alexa, abre santo rosario' y luego 'reza el rosario'. Avanza con 'siguiente'.",
+      "category": "RELIGION_AND_SPIRITUALITY"
+    },
+    "apis": {
+      "custom": {}
+    },
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "locales": {
+        "es-MX": { "privacyPolicyUrl": "https://oremusweb.netlify.app/" },
+        "es-ES": { "privacyPolicyUrl": "https://oremusweb.netlify.app/" }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "santo rosario",
+      "intents": [
+        { "name": "AMAZON.NextIntent", "samples": ["siguiente", "continúa", "continuar", "el siguiente", "adelante", "ya", "amén"] },
+        { "name": "AMAZON.PreviousIntent", "samples": ["anterior", "regresa", "el anterior", "atrás"] },
+        { "name": "AMAZON.RepeatIntent", "samples": ["repite", "repítelo", "otra vez", "de nuevo"] },
+        { "name": "AMAZON.HelpIntent", "samples": ["ayuda", "cómo funciona", "qué puedo decir"] },
+        { "name": "AMAZON.StopIntent", "samples": ["detente", "para", "termina", "terminar", "ya terminé"] },
+        { "name": "AMAZON.CancelIntent", "samples": ["cancela", "cancelar"] },
+        { "name": "AMAZON.PauseIntent", "samples": ["pausa", "pausar", "espera"] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        {
+          "name": "StartRosaryIntent",
+          "slots": [
+            { "name": "set", "type": "MYSTERY_SET" }
+          ],
+          "samples": [
+            "reza el rosario",
+            "recemos el rosario",
+            "reza el rosario de hoy",
+            "quiero rezar el rosario",
+            "vamos a rezar el rosario",
+            "empieza el rosario",
+            "comienza el rosario",
+            "reza el santo rosario",
+            "reza los misterios {set}",
+            "recemos los misterios {set}",
+            "reza el rosario con los misterios {set}",
+            "reza los misterios {set} del rosario",
+            "misterios {set}"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "MYSTERY_SET",
+          "values": [
+            { "name": { "value": "gozosos", "synonyms": ["gozoso", "de gozo", "alegres"] } },
+            { "name": { "value": "luminosos", "synonyms": ["luminoso", "de luz"] } },
+            { "name": { "value": "dolorosos", "synonyms": ["doloroso", "de dolor"] } },
+            { "name": { "value": "gloriosos", "synonyms": ["glorioso", "de gloria"] } }
+          ]
+        }
+      ]
+    }
+  }
+}
