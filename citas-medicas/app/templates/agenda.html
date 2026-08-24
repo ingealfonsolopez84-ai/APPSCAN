@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Agenda · Citas Médicas{% endblock %}
+{% block contenido %}
+<div class="cabecera-agenda">
+  <h1>Agenda</h1>
+  <div class="navdia">
+    <a class="btn" href="/agenda?dia={{ dia_prev }}">‹ Anterior</a>
+    <strong>{{ dia.strftime('%A %d/%m/%Y') }}</strong>
+    <a class="btn" href="/agenda?dia={{ dia_next }}">Siguiente ›</a>
+  </div>
+</div>
+
+<div class="grid2">
+  <section class="panel">
+    <h2>Citas del día</h2>
+    <div id="lista-citas">
+      {% include "_lista_citas.html" %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Nueva cita</h2>
+    <form hx-post="/agenda/cita" hx-target="#lista-citas" hx-swap="innerHTML" class="form">
+      <label>Paciente
+        <select name="paciente_id" required>
+          {% for p in pacientes %}
+          <option value="{{ p.id }}">{{ p.nombre }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Fecha
+        <input type="date" name="fecha" value="{{ dia.isoformat() }}" required>
+      </label>
+      <label>Hora
+        <input type="time" name="hora" value="09:00" required>
+      </label>
+      <label>Duración (min)
+        <input type="number" name="duracion_min" value="30" min="5" max="480">
+      </label>
+      <label>Motivo
+        <input type="text" name="motivo" placeholder="Consulta general">
+      </label>
+      <button type="submit" class="btn primario">Agendar</button>
+    </form>
+    {% if not pacientes %}
+    <p class="vacio">Primero registra pacientes en la pestaña <a href="/pacientes">Pacientes</a>.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

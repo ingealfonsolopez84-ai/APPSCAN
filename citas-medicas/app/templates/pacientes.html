@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Pacientes · Citas Médicas{% endblock %}
+{% block contenido %}
+<h1>Pacientes</h1>
+
+<div class="grid2">
+  <section class="panel">
+    <h2>Listado</h2>
+    <input class="buscador" type="search" name="buscar" placeholder="Buscar por nombre o teléfono…"
+           hx-get="/pacientes" hx-trigger="keyup changed delay:300ms" hx-target="#lista-pacientes" hx-swap="innerHTML">
+    <div id="lista-pacientes">
+      {% include "_lista_pacientes.html" %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Nuevo paciente</h2>
+    <form hx-post="/pacientes" hx-target="#lista-pacientes" hx-swap="innerHTML" hx-on::after-request="this.reset()" class="form">
+      <label>Nombre <input type="text" name="nombre" required></label>
+      <label>Teléfono (WhatsApp) <input type="tel" name="telefono" placeholder="+52..."></label>
+      <label>Email <input type="email" name="email"></label>
+      <button type="submit" class="btn primario">Guardar</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

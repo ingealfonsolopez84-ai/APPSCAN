@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Panel · Citas Médicas{% endblock %}
+{% block contenido %}
+<h1>Panel de control</h1>
+<p class="sub">Últimos 30 días · {{ consultorio.nombre }}</p>
+
+<section class="tarjetas">
+  <div class="tarjeta">
+    <div class="valor">{{ m.total_citas }}</div>
+    <div class="etiqueta">Citas</div>
+  </div>
+  <div class="tarjeta">
+    <div class="valor">{{ m.atendidas }}</div>
+    <div class="etiqueta">Atendidas</div>
+  </div>
+  <div class="tarjeta {{ 'alerta' if m.tasa_no_show > 0.15 else '' }}">
+    <div class="valor">{{ (m.tasa_no_show * 100) | round(1) }}%</div>
+    <div class="etiqueta">Tasa de no-show</div>
+  </div>
+  <div class="tarjeta">
+    <div class="valor">{{ (m.tasa_cancelacion * 100) | round(1) }}%</div>
+    <div class="etiqueta">Cancelaciones</div>
+  </div>
+  <div class="tarjeta">
+    <div class="valor">{{ m.pacientes_activos }}</div>
+    <div class="etiqueta">Pacientes activos</div>
+  </div>
+</section>
+
+<div class="grid2">
+  <section class="panel">
+    <h2>Horarios pico</h2>
+    <div class="barras">
+      {% for h in pico %}
+      <div class="barra-col" title="{{ h.citas }} citas a las {{ h.hora }}:00">
+        <div class="barra-fill" style="height: {{ (h.citas / max_pico * 100) | round(0) }}%"></div>
+        <span class="barra-hora">{{ h.hora }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Pacientes recurrentes</h2>
+    {% if recurrentes %}
+    <table class="tabla">
+      <thead><tr><th>Paciente</th><th>Citas</th></tr></thead>
+      <tbody>
+        {% for r in recurrentes %}
+        <tr><td>{{ r.nombre }}</td><td>{{ r.num_citas }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="vacio">Aún no hay pacientes con historial suficiente.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

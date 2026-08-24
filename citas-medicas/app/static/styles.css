@@ -1,0 +1,90 @@
+:root {
+  --azul: #1f6feb;
+  --azul-osc: #164a9e;
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --texto: #1c2430;
+  --suave: #6b7684;
+  --borde: #e3e8ef;
+  --verde: #1a7f52;
+  --rojo: #c0392b;
+  --amarillo: #b7791f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--texto);
+}
+.barra {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--azul); color: #fff; padding: 0.8rem 1.4rem;
+}
+.marca { font-weight: 700; font-size: 1.1rem; }
+.barra nav a { color: #eaf1ff; text-decoration: none; margin-left: 1.2rem; font-weight: 500; }
+.barra nav a:hover { text-decoration: underline; }
+.contenedor { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+h1 { margin: 0 0 0.2rem; }
+.sub { color: var(--suave); margin-top: 0; }
+
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1.2rem 0; }
+.tarjeta { background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; padding: 1rem; text-align: center; }
+.tarjeta .valor { font-size: 1.9rem; font-weight: 700; }
+.tarjeta .etiqueta { color: var(--suave); font-size: 0.85rem; }
+.tarjeta.alerta .valor { color: var(--rojo); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; padding: 1.2rem; }
+.panel h2 { margin-top: 0; font-size: 1.05rem; }
+
+.barras { display: flex; align-items: flex-end; gap: 4px; height: 160px; }
+.barra-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.barra-fill { width: 70%; background: var(--azul); border-radius: 4px 4px 0 0; min-height: 2px; transition: height .3s; }
+.barra-hora { font-size: 0.7rem; color: var(--suave); margin-top: 2px; }
+
+.tabla { width: 100%; border-collapse: collapse; }
+.tabla th, .tabla td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--borde); font-size: 0.92rem; }
+.tabla th { color: var(--suave); font-weight: 600; }
+
+.form { display: flex; flex-direction: column; gap: 0.7rem; }
+.form label { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--suave); gap: 0.25rem; }
+.form input, .form select, .buscador {
+  padding: 0.5rem; border: 1px solid var(--borde); border-radius: 8px; font-size: 0.95rem; color: var(--texto);
+}
+.buscador { width: 100%; margin-bottom: 0.8rem; }
+
+.btn { display: inline-block; background: #eef2f8; color: var(--texto); border: 1px solid var(--borde);
+  border-radius: 8px; padding: 0.45rem 0.8rem; text-decoration: none; cursor: pointer; font-size: 0.9rem; }
+.btn:hover { background: #e2e8f2; }
+.btn.primario { background: var(--azul); color: #fff; border-color: var(--azul-osc); }
+.btn.primario:hover { background: var(--azul-osc); }
+.btn.pequeno { padding: 0.3rem 0.5rem; }
+
+.cabecera-agenda { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem; }
+.navdia { display: flex; align-items: center; gap: 0.8rem; }
+
+.citas { list-style: none; padding: 0; margin: 0; }
+.cita { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  padding: 0.6rem; border: 1px solid var(--borde); border-left: 4px solid var(--suave); border-radius: 8px; margin-bottom: 0.5rem; }
+.cita.estado-confirmada { border-left-color: var(--verde); }
+.cita.estado-cancelada { border-left-color: var(--rojo); opacity: 0.7; }
+.cita.estado-no_show { border-left-color: var(--amarillo); }
+.cita.estado-atendida { border-left-color: var(--azul); }
+.cita-info { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.cita-hora { font-weight: 700; }
+.cita-paciente { font-weight: 500; }
+.cita-motivo { color: var(--suave); font-size: 0.85rem; }
+.cita-acciones { display: flex; align-items: center; gap: 0.3rem; }
+.inline { display: inline; margin: 0; }
+
+.badge { font-size: 0.7rem; padding: 0.1rem 0.45rem; border-radius: 20px; background: #eef2f8; color: var(--suave); text-transform: capitalize; }
+.b-confirmada { background: #e4f6ec; color: var(--verde); }
+.b-cancelada { background: #fbe9e7; color: var(--rojo); }
+.b-no_show { background: #fdf3e2; color: var(--amarillo); }
+.b-atendida { background: #e7f0ff; color: var(--azul); }
+.b-recordado { background: #eae4ff; color: #6d3fd1; }
+
+.vacio { color: var(--suave); font-style: italic; }
+.pie { text-align: center; color: var(--suave); font-size: 0.8rem; padding: 1.5rem; }

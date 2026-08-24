@@ -1,0 +1,31 @@
+{% if citas %}
+<ul class="citas">
+  {% for c in citas %}
+  <li class="cita estado-{{ c.estado.value }}">
+    <div class="cita-info">
+      <span class="cita-hora">{{ fmt_hora(c.inicio) }}</span>
+      <span class="cita-paciente">{{ c.paciente.nombre }}</span>
+      {% if c.motivo %}<span class="cita-motivo">{{ c.motivo }}</span>{% endif %}
+      <span class="badge b-{{ c.estado.value }}">{{ c.estado.value.replace('_', ' ') }}</span>
+      {% if c.recordatorio_enviado %}<span class="badge b-recordado">recordado</span>{% endif %}
+    </div>
+    <div class="cita-acciones">
+      <form hx-post="/agenda/cita/{{ c.id }}/estado" hx-target="#lista-citas" hx-swap="innerHTML" class="inline">
+        <input type="hidden" name="dia" value="{{ dia.isoformat() }}">
+        <select name="estado" onchange="this.form.requestSubmit()">
+          {% for e in estados %}
+          <option value="{{ e.value }}" {{ 'selected' if e == c.estado else '' }}>{{ e.value.replace('_',' ') }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <form hx-post="/agenda/cita/{{ c.id }}/recordatorio" hx-target="#lista-citas" hx-swap="innerHTML" class="inline">
+        <input type="hidden" name="dia" value="{{ dia.isoformat() }}">
+        <button type="submit" class="btn pequeno" title="Enviar recordatorio por WhatsApp">📲</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vacio">No hay citas para este día.</p>
+{% endif %}

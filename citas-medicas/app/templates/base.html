@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Citas Médicas{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/htmx.min.js"></script>
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">🩺 Citas Médicas</div>
+    <nav>
+      <a href="/">Panel</a>
+      <a href="/agenda">Agenda</a>
+      <a href="/pacientes">Pacientes</a>
+    </nav>
+  </header>
+  <main class="contenedor">
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer class="pie">
+    {{ consultorio.nombre if consultorio else "Consultorio" }} · MVP de citas
+  </footer>
+</body>
+</html>

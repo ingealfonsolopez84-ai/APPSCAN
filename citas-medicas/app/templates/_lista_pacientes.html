@@ -1,0 +1,16 @@
+{% if pacientes %}
+<table class="tabla">
+  <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th></tr></thead>
+  <tbody>
+    {% for p in pacientes %}
+    <tr>
+      <td>{{ p.nombre }}</td>
+      <td>{{ p.telefono or '—' }}</td>
+      <td>{{ p.email or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vacio">No hay pacientes registrados todavía.</p>
+{% endif %}
