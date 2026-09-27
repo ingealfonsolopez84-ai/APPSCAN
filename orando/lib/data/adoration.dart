@@ -51,7 +51,18 @@ class Adoration {
         'Soy un alma sedienta de ventura, un corazón que muere por amar y abrazarme en la llama inextinguible del fuego de tu eterna caridad.',
         'Concédeme, Señor, que a Ti me acerque; permíteme que tus pies llegue a besar; déjame que los riegue con mi llanto y que los sacie en ellos mi ardoroso afán.',
         'Oh, qué bien se está aquí, mi dueño amado, ante las gradas de tu santo altar, bebiendo de la fuente de aguas vivas que brota de tu pecho sin cesar.',
+        '¡Quién pudiera vivir eternamente en aquella soledad, gozando de tu amor y tu hermosura, en un éxtasis dulcísimo de paz!',
       ],
+      note: 'Por V. Osende, O.P.',
+    ),
+    AdorationPrayer(
+      title: 'Última Visita Nocturna',
+      paragraphs: [
+        'Quédate con nosotros, Señor, esta noche. Quédate para adorar, alabar y dar gracias por nosotros mientras que dormimos, para hacer que baje del cielo tu misericordia sobre el mundo; para socorrer desde los Tabernáculos de la tierra a las benditas almas que sufren en el purgatorio su prolongada noche de sufrimientos y penas.',
+        'Quédate con nosotros, para apartar la justa ira de Dios de nuestras populosas ciudades, con sus densísimas nubes de vicios y crímenes que claman venganza del cielo.',
+        'Quédate con nosotros, para guardar a los inocentes, para sostener a los tentados, para levantar a los caídos, para subyugar el poder del demonio, para impedir el pecado, para confortar a los que sufren, para dar contrición a los que mueren, y para recibir en los brazos de tu misericordia a las almas que esta noche se presenten ante Ti. Amén.',
+      ],
+      note: 'El final se completó con el texto tradicional; verifica con la página 40 de tu librito.',
     ),
   ];
 
