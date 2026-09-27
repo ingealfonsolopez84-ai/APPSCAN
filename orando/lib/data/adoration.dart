@@ -58,11 +58,13 @@ class Adoration {
     AdorationPrayer(
       title: 'Última Visita Nocturna',
       paragraphs: [
-        'Quédate con nosotros, Señor, esta noche. Quédate para adorar, alabar y dar gracias por nosotros mientras que dormimos, para hacer que baje del cielo tu misericordia sobre el mundo; para socorrer desde los Tabernáculos de la tierra a las benditas almas que sufren en el purgatorio su prolongada noche de sufrimientos y penas.',
-        'Quédate con nosotros, para apartar la justa ira de Dios de nuestras populosas ciudades, con sus densísimas nubes de vicios y crímenes que claman venganza del cielo.',
-        'Quédate con nosotros, para guardar a los inocentes, para sostener a los tentados, para levantar a los caídos, para subyugar el poder del demonio, para impedir el pecado, para confortar a los que sufren, para dar contrición a los que mueren, y para recibir en los brazos de tu misericordia a las almas que esta noche se presenten ante Ti. Amén.',
+        'Quédate con nosotros, Señor, esta noche.',
+        'Quédate para adorar, alabar y dar gracias por nosotros mientras dormimos, para hacer que baje del Cielo tu misericordia sobre el mundo, para socorrer desde los tabernáculos de la tierra a las benditas almas del Purgatorio en su prolongada noche de sufrimientos y pena.',
+        'Quédate con nosotros, para apartar la ira de Dios de nuestras populosas ciudades con sus densísimas nubes de vicios y crímenes que claman venganza al Cielo.',
+        'Quédate con nosotros para guardar a los inocentes, para sostener a los tentados, para levantar a los caídos, para subyugar el poder del demonio, para impedir el pecado. Quédate con nosotros para confortar a los que yacen en el lecho del dolor, para dar contrición a los que mueren, para recibir en los brazos de tu misericordia las miles de almas que se presentarán ante Ti esta noche para ser juzgadas.',
+        '¡Oh Buen Pastor, quédate con tus ovejas, defiéndelas de los peligros que las rodean y amenazan! Pero sobre todo quédate con los que sufren y con los agonizantes. Danos una noche tranquila y un fin perfecto. Sé nuestro misericordioso Padre hasta lo último, para que sin temor podamos presentarnos delante de Ti, como nuestro juez.',
+        'Quédate, Señor, en mi corazón. Así sea.',
       ],
-      note: 'El final se completó con el texto tradicional; verifica con la página 40 de tu librito.',
     ),
   ];
 
