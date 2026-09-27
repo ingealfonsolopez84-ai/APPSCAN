@@ -37,7 +37,20 @@ class Adoration {
       title: 'Oración a San José',
       paragraphs: [
         'A vos, bienaventurado San José, acudimos en nuestra tribulación, y después de implorar el auxilio de vuestra santísima Esposa, solicitamos también confiadamente vuestro patrocinio. Por aquella caridad que con la inmaculada Virgen María, Madre de Dios, os tuvo unido, y por el paternal amor con que abrazasteis al Niño Jesús, humildemente os suplicamos que volváis benignos los ojos a la herencia que con su sangre adquirió Jesucristo, y con vuestro poder y auxilio socorráis nuestras necesidades.',
-        'Proteged, oh providentísimo custodio de la Sagrada Familia, la escogida descendencia de Jesucristo; apartad de nosotros toda mancha de error y de corrupción; asistidnos propicio desde el cielo, fortísimo libertador nuestro, en esta lucha con el poder de las tinieblas; y así como en otro tiempo librasteis al Niño Jesús del inminente peligro de su vida, así ahora defended a la santa Iglesia de Dios de las asechanzas de sus enemigos y de toda adversidad; y a cada uno de nosotros protegednos con perpetuo patrocinio, para que, a ejemplo vuestro y sostenidos por vuestro auxilio, podamos vivir santamente, morir piadosamente y alcanzar en el cielo la eterna bienaventuranza. Amén.',
+        'Proteged, oh providentísimo custodio de la Sagrada Familia, la escogida descendencia de Jesucristo; apartad de nosotros toda mancha de error y de corrupción; asistidnos propicio desde el cielo, fortísimo libertador nuestro, en esta lucha con el poder de las tinieblas; y como en otro tiempo libraste al Niño Jesús de inminente peligro de la vida, así ahora defended a la santa Iglesia de Dios de las acechanzas de sus enemigos y de toda adversidad; y a cada uno de nosotros protegednos con perpetuo patrocinio, para que, a ejemplo vuestro y sostenidos por vuestro auxilio, podamos santamente vivir y piadosamente morir, y alcanzar en los cielos la eterna bienaventuranza. Amén.',
+      ],
+    ),
+    AdorationPrayer(
+      title: 'Visita a Jesús Sacramentado',
+      paragraphs: [
+        'De nuevo aquí me tienes, ¡Jesús mío!, confuso y humillado ante tu altar, sin saber qué decirte ni qué hablarte, ansioso solamente de llorar.',
+        'Vengo del mundo, vengo del combate, cansado de sufrir y de luchar; traigo el alma cargada de tristezas y hambriento el corazón de soledad.',
+        'De esa soledad dulce, divina, que alegra tu presencia celestial, donde el alma, tan solo con mirarte, te dice cuanto quiere sin hablar.',
+        'Mis miserias, ¡Señor!, aquí me traen; ¡ay, mírame con ojos de piedad! Soy el mismo de siempre, ¡Dueño mío!, un abismo infinito de maldad.',
+        'Un triste pecador siempre caído, que llora desolado su orfandad, y gime bajo el peso de sus culpas y ansía por recobrar su libertad.',
+        'Soy un alma sedienta de ventura, un corazón que muere por amar y abrazarme en la llama inextinguible del fuego de tu eterna caridad.',
+        'Concédeme, Señor, que a Ti me acerque; permíteme que tus pies llegue a besar; déjame que los riegue con mi llanto y que los sacie en ellos mi ardoroso afán.',
+        'Oh, qué bien se está aquí, mi dueño amado, ante las gradas de tu santo altar, bebiendo de la fuente de aguas vivas que brota de tu pecho sin cesar.',
       ],
     ),
   ];
