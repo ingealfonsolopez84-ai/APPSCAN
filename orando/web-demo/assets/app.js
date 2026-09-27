@@ -478,69 +478,55 @@
   };
 
   /* ------------------------------ Adoración ------------------------------ */
+  /* 15 minutos ante el Santísimo: lectura en letra grande, sin temporizador. */
   OrandoApp.prototype.viewAdorar = function () {
-    var self = this, ad = this.ad;
-    clearInterval(ad.timer); ad.running = false;
+    var self = this;
+    if (this.adScale == null) this.adScale = 1.15; // arranca en letra grande
+    var sc = this.adScale;
+    var vstyle = function (base) { return 'font-family:var(--display);font-style:italic;color:var(--verse);line-height:1.6;margin:0;font-size:' + (base * sc).toFixed(1) + 'px'; };
+    var tstyle = function (base) { return 'font-family:var(--display);font-weight:500;color:var(--ink);margin:0 0 10px;line-height:1.15;font-size:' + (base * sc).toFixed(1) + 'px'; };
+
     var host = Dom.el('div');
-    host.appendChild(Dom.el('p', { cls: 'sub', text: 'Un rato de adoración guiada, para estar con Jesús presente en la Eucaristía.' }));
 
-    var chips = Dom.el('div', { children: [10, 15, 20, 30].map(function (m) {
-      return Dom.el('span', { cls: 'chip' + (m === ad.minutes ? ' on' : ''), text: m + ' min', on: { click: function () {
-        ad.minutes = m; ad.total = m * 60; ad.remain = m * 60; ad.moment = 0; self.router.go('adorar');
-      } } });
-    }) });
-    host.appendChild(chips);
-
-    var canvas = Dom.el('canvas', { cls: 'ring', attrs: { width: '200', height: '200' } });
-    var btn = Dom.el('button', { cls: 'btn gold', text: '▶ Comenzar' });
-    var resetBtn = Dom.el('button', { cls: 'btn ghost', style: 'flex:0 0 30%', text: '■', on: { click: function () { doReset(); } } });
-    host.appendChild(card({ hero: true, cls: 'center', children: [
-      canvas, Dom.el('div', { style: 'display:flex;gap:10px;margin-top:6px', children: [btn, resetBtn] })
+    // Encabezado + control de tamaño de letra
+    host.appendChild(Dom.el('div', { style: 'display:flex;align-items:center;gap:10px;margin:6px 0 2px', children: [
+      Dom.el('div', { style: 'flex:1', children: [
+        Dom.el('h2', { cls: 't', style: 'font-size:' + (24 * Math.min(sc, 1.3)).toFixed(0) + 'px;margin:0', text: '15 minutos ante el Santísimo' })
+      ] }),
+      Dom.el('button', { cls: 'chip', text: 'A−', on: { click: function () { self.adScale = Math.max(0.9, sc - 0.15); self.router.go('adorar'); } } }),
+      Dom.el('button', { cls: 'chip', text: 'A+', on: { click: function () { self.adScale = Math.min(1.9, sc + 0.15); self.router.go('adorar'); } } })
     ] }));
+    host.appendChild(Dom.el('p', { cls: 'sub', text: 'Ponte en presencia de Jesús Sacramentado y reza despacio. Ajusta el tamaño con A− / A+.' }));
 
-    var kEl = kicker('Meditación · 1 de ' + DATA.adoration.length);
-    var tEl = Dom.el('h2', { cls: 't', style: 'font-size:20px;margin:8px 0', text: DATA.adoration[0][0] });
-    var pEl = verse(DATA.adoration[0][1]);
+    // Jaculatoria de entrada
     host.appendChild(card({ hero: true, children: [
-      kEl, tEl, pEl,
-      Dom.el('div', { style: 'display:flex;justify-content:space-between;margin-top:10px', children: [
-        Dom.el('button', { cls: 'chip', text: '‹ Anterior', on: { click: function () { moveMoment(-1); } } }),
-        Dom.el('button', { cls: 'chip', text: 'Siguiente ›', on: { click: function () { moveMoment(1); } } })
-      ] })
+      Dom.el('p', { style: vstyle(20) + ';text-align:center', text: DATA.adorationJaculatoria })
     ] }));
 
-    function updMoment() {
-      kEl.textContent = 'Meditación · ' + (ad.moment + 1) + ' de ' + DATA.adoration.length;
-      tEl.textContent = DATA.adoration[ad.moment][0];
-      pEl.textContent = DATA.adoration[ad.moment][1];
-    }
-    function moveMoment(d) { ad.moment = Math.max(0, Math.min(DATA.adoration.length - 1, ad.moment + d)); updMoment(); }
-    function draw() {
-      var ctx = canvas.getContext('2d'), wd = canvas.width, r = 80, cx = wd / 2, cy = wd / 2;
-      ctx.clearRect(0, 0, wd, wd); ctx.lineWidth = 12; ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(110,151,201,.35)'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke();
-      var pct = 1 - ad.remain / ad.total;
-      if (pct > 0) { ctx.strokeStyle = '#c68f2c'; ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * pct); ctx.stroke(); }
-      ctx.fillStyle = '#26344f'; ctx.textAlign = 'center'; ctx.font = '500 40px Georgia,serif';
-      var mm = String(Math.floor(ad.remain / 60)).padStart(2, '0'), ss = String(ad.remain % 60).padStart(2, '0');
-      ctx.fillText(ad.remain === 0 ? '¡Amén!' : mm + ':' + ss, cx, cy + 8);
-      ctx.fillStyle = '#c68f2c'; ctx.font = '700 11px system-ui,sans-serif';
-      ctx.fillText(ad.remain === 0 ? 'COMPLETADA' : 'RESTANTES', cx, cy + 30);
-    }
-    function tick() {
-      ad.remain--;
-      if (ad.remain <= 0) { ad.remain = 0; clearInterval(ad.timer); ad.running = false; btn.textContent = '↻ De nuevo'; }
-      var idx = Math.min(DATA.adoration.length - 1, Math.floor((ad.total - ad.remain) / ad.total * DATA.adoration.length));
-      if (idx !== ad.moment) { ad.moment = idx; updMoment(); }
-      draw();
-    }
-    function doToggle() {
-      if (ad.running) { clearInterval(ad.timer); ad.running = false; btn.textContent = '▶ Reanudar'; return; }
-      ad.running = true; btn.textContent = '⏸ Pausar'; ad.timer = setInterval(tick, 1000);
-    }
-    function doReset() { clearInterval(ad.timer); ad.running = false; ad.remain = ad.total; ad.moment = 0; btn.textContent = '▶ Comenzar'; updMoment(); draw(); }
-    btn.addEventListener('click', doToggle);
-    draw();
+    // Guía de los 15 minutos
+    host.appendChild(Dom.el('div', { cls: 'kicker', style: 'margin:16px 0 8px', text: 'Guía de los 15 minutos' }));
+    DATA.adoration.forEach(function (m) {
+      host.appendChild(card({ children: [
+        Dom.el('h3', { style: tstyle(19), text: m[0] }),
+        Dom.el('p', { style: vstyle(17), text: m[1] })
+      ] }));
+    });
+
+    // Oraciones (Consagración y Desagravio, San José)
+    host.appendChild(Dom.el('div', { cls: 'kicker', style: 'margin:16px 0 8px', text: 'Oraciones' }));
+    DATA.adorationPrayers.forEach(function (pr) {
+      var kids = [Dom.el('h3', { style: tstyle(20), text: pr.t })];
+      pr.p.forEach(function (par, i) {
+        kids.push(Dom.el('p', { style: vstyle(18) + (i > 0 ? ';margin-top:14px' : ';margin-top:6px'), text: par }));
+      });
+      host.appendChild(card({ hero: true, children: kids }));
+    });
+
+    // Jaculatorias para el silencio
+    var jac = [Dom.el('div', { cls: 'kicker', style: 'margin-bottom:8px', text: 'Jaculatorias para el silencio' })];
+    DATA.aspirations.forEach(function (a) { jac.push(Dom.el('p', { style: vstyle(17) + ';margin:6px 0', text: '• ' + a })); });
+    host.appendChild(card({ children: jac }));
+
     return { title: 'Ante el Santísimo', nodes: [host] };
   };
 

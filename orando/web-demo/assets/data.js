@@ -103,6 +103,26 @@
     ['Con María, despedirse', 'Reza un Ave María. «Quédate conmigo, Señor, para que salga llevándote a los demás.» Haz la señal de la Cruz.']
   ];
 
+  const adorationJaculatoria = 'Viva Jesús Sacramentado, viva y de todos sea muy amado.';
+  const adorationPrayers = [
+    { t: 'Acto de Consagración y Desagravio al Sagrado Corazón de Jesús', p: [
+      '¡Oh Corazón de Jesús! Quiero consagrarme a ti con todo el fervor de mi espíritu. Sobre el ara del altar en que te inmolas por mi amor, deposito todo mi amor, deposito todo mi ser: mi cuerpo, que respetaré como templo en que tú habitas; mi alma, que cultivaré como jardín en que te recreas; mis sentidos, que guardaré como puertas de tentación; mis potencias, que abriré a las inspiraciones de tu gracia; mis pensamientos, que apartaré de las ilusiones del mundo; mis deseos, que pondré en la felicidad del Paraíso; mis virtudes, que florecerán a la sombra de tu protección; mis pasiones, que se someterán al freno de mis mandamientos; y el dolor de mis pecados, que detestaré mientras haya odios en mi pecho, y que lloraré sin cesar mientras haya lágrimas en mis ojos.',
+      'Mi corazón quiere desde hoy ser para siempre todo tuyo, así como tú, ¡oh Corazón divino!, has querido ser siempre todo mío. Tuyo todo, tuyo siempre; no más culpas, no más tibieza. Te serviré por los que te ofenden; pensaré en ti por los que de ti se olvidan; te amaré por los que te odian; y rogaré, y gemiré, y me sacrificaré por los que blasfeman de ti sin conocerte.',
+      'Tú, que penetras los corazones, y sabes la sinceridad de mis deseos, comunícame aquella gracia que hace al débil omnipotente; dame el triunfo del valor en las batallas de la tierra, y cíñeme el olivo de la paz en las mansiones de la gloria. Amén.'
+    ]},
+    { t: 'Oración a San José', p: [
+      'A vos, bienaventurado San José, acudimos en nuestra tribulación, y después de implorar el auxilio de vuestra santísima Esposa, solicitamos también confiadamente vuestro patrocinio. Por aquella caridad que con la inmaculada Virgen María, Madre de Dios, os tuvo unido, y por el paternal amor con que abrazasteis al Niño Jesús, humildemente os suplicamos que volváis benignos los ojos a la herencia que con su sangre adquirió Jesucristo, y con vuestro poder y auxilio socorráis nuestras necesidades.',
+      'Proteged, oh providentísimo custodio de la Sagrada Familia, la escogida descendencia de Jesucristo; apartad de nosotros toda mancha de error y de corrupción; asistidnos propicio desde el cielo, fortísimo libertador nuestro, en esta lucha con el poder de las tinieblas; y así como en otro tiempo librasteis al Niño Jesús del inminente peligro de su vida, así ahora defended a la santa Iglesia de Dios de las asechanzas de sus enemigos y de toda adversidad; y a cada uno de nosotros protegednos con perpetuo patrocinio, para que, a ejemplo vuestro y sostenidos por vuestro auxilio, podamos vivir santamente, morir piadosamente y alcanzar en el cielo la eterna bienaventuranza. Amén.'
+    ]}
+  ];
+  const aspirations = [
+    'Jesús, en Ti confío.',
+    'Señor, quédate conmigo.',
+    'Adoro tu presencia, Señor.',
+    'Jesús, manso y humilde de corazón, haz mi corazón semejante al tuyo.',
+    'Sólo Dios basta.'
+  ];
+
   const verses = [
     ['«Venid a mí todos los que estáis cansados y agobiados, y yo os aliviaré.»', 'Mateo 11, 28'],
     ['«El Señor es mi pastor, nada me falta.»', 'Salmo 23, 1'],
@@ -118,6 +138,7 @@
 
   w.ORANDO_DATA = deepFreeze({
     icons, categories, mysteries, guide, adoration, verses,
+    adorationJaculatoria, adorationPrayers, aspirations,
     prayers: { AM1, AM2, PN, GL, FA, SALVE }
   });
 })(window);

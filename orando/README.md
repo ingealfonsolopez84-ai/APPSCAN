@@ -17,7 +17,7 @@ invita a la paz y la oración.
 | **Oraciones** | Más de 40 rezos por categorías: fundamentales, a la Virgen, al Espíritu Santo, mañana y noche, **antes y después de la misa**, y ante el Santísimo. Favoritos y copiar. |
 | **Rosario** | Misterios según el día, **guía paso a paso** y un **rezo guiado** que cuenta las cuentas por ti (Ave Marías, decenas, misterios, oraciones de inicio y fin). |
 | **Misas** | Con tu permiso de ubicación, abre iglesias católicas cercanas y horarios en Mapas, con indicaciones para llegar. |
-| **Adoración** | Temporizador de **15 minutos ante el Santísimo** (o 10/20/30) con meditaciones que avanzan solas y jaculatorias. |
+| **Adoración** | **15 minutos ante el Santísimo**: oraciones en letra grande (jaculatoria, Acto de Consagración y Desagravio al Sagrado Corazón, Oración a San José), guía de meditación y jaculatorias. Control de tamaño de letra (A− / A+); sin temporizador. |
 
 ---
 
