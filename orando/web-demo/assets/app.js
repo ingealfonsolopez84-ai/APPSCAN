@@ -233,6 +233,21 @@
     this._buildPanel();
     this.analytics.trackVisit();
     this.router.go('inicio');
+    this._setupSplash();
+  };
+
+  // Bienvenida animada: se oculta al tocar o tras unos segundos.
+  OrandoApp.prototype._setupSplash = function () {
+    var splash = doc.getElementById('splash');
+    if (!splash) return;
+    var done = false;
+    var hide = function () {
+      if (done) return; done = true;
+      splash.classList.add('hide');
+      setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
+    };
+    splash.addEventListener('click', hide);
+    setTimeout(hide, 2800);
   };
 
   OrandoApp.prototype.pushApoyo = function () { this.router.push({ v: 'apoyo' }); };
