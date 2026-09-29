@@ -1,0 +1,12 @@
+{
+  "name": "estudio",
+  "version": "0.1.0",
+  "description": "Portal web para controlar cámaras Sony y DJI Osmo Action con teleprompter y asistente de iluminación",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js"
+  }
+}

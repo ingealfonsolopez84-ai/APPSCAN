@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estudio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="layout">
+    <!-- ============ COLUMNA IZQUIERDA: cámara ============ -->
+    <section class="col col-camera">
+      <nav class="cam-tabs" id="camTabs"></nav>
+
+      <div class="preview" id="preview">
+        <img id="liveImg" alt="" hidden>
+        <video id="liveVideo" autoplay muted playsinline hidden></video>
+        <canvas id="overlay"></canvas>
+        <div class="preview-empty" id="previewEmpty">Sin vista previa</div>
+        <span class="fps" id="fps"></span>
+        <span class="rec-badge" id="recBadge" hidden>● REC <b id="recTime">0:00</b></span>
+      </div>
+
+      <div class="row">
+        <button class="btn-rec" id="btnRec"><span class="dot"></span><span id="recLabel">GRABAR</span></button>
+        <div class="box zoom-box" id="zoomBox">
+          <div class="box-title">Zoom (mantén presionado)</div>
+          <div class="row tight">
+            <button class="btn" data-zoom="out">− Abrir</button>
+            <button class="btn" data-zoom="in">+ Cerrar</button>
+          </div>
+          <div class="hint" id="zoomPos">—</div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-title" id="tpMiniTitle">Teleprompter</div>
+        <div class="row tight">
+          <button class="btn" id="tpListBtn">≡ Lista</button>
+          <button class="btn" id="tpTopBtn">⤒ Inicio</button>
+          <button class="btn" data-ppm="-5">−</button>
+          <div class="ppm"><b class="ppmVal">150</b><small>ppm</small></div>
+          <button class="btn" data-ppm="5">+</button>
+          <button class="btn" id="tpPlayMini">▶ Texto</button>
+          <button class="btn" id="tpMirrorBtn" title="Espejo (para cristal de teleprompter)">⇋</button>
+        </div>
+      </div>
+
+      <div class="settings" id="settings"></div>
+
+      <div class="box" id="focusBox">
+        <div class="box-title">Enfoque</div>
+        <div class="row tight">
+          <button class="btn" data-focus="near2">◀◀</button>
+          <button class="btn" data-focus="near">◀</button>
+          <button class="btn" data-focus="af">AF</button>
+          <button class="btn" data-focus="far">▶</button>
+          <button class="btn" data-focus="far2">▶▶</button>
+        </div>
+      </div>
+
+      <div class="row tight">
+        <button class="btn toggle" data-overlay="grid">Cuadrícula</button>
+        <button class="btn toggle" data-overlay="guides">Guías</button>
+        <button class="btn toggle" data-overlay="vertical">9:16</button>
+        <button class="btn toggle" id="smoothBtn" title="Vista previa por capturadora HDMI / webcam">Vista fluida</button>
+      </div>
+      <div class="row tight wrap" id="scenes"></div>
+
+      <div class="box" id="sourceBox" hidden>
+        <div class="box-title">Fuente de video (webcam / capturadora HDMI / Osmo en modo webcam)</div>
+        <select id="sourceSelect"></select>
+      </div>
+    </section>
+
+    <!-- ============ COLUMNA CENTRAL: teleprompter ============ -->
+    <section class="col col-prompter">
+      <div class="prompter" id="prompter">
+        <div class="prompter-marker"><span>▶</span><span>◀</span></div>
+        <div class="prompter-scroll" id="tpScroll">
+          <div class="prompter-text" id="tpText"></div>
+        </div>
+      </div>
+      <div class="prompter-bar">
+        <button class="btn small" id="tpBack">‹ Lista</button>
+        <span class="tag" id="tpTitle">—</span>
+        <span class="tp-progress" id="tpProgress">0:00</span>
+        <button class="btn small" id="tpFontDown">A−</button>
+        <button class="btn small" id="tpFontUp">A+</button>
+        <button class="btn small" id="tpEdit">✎</button>
+      </div>
+      <div class="prompter-bar">
+        <button class="btn small" id="tpTop2">⤒</button>
+        <button class="btn small" data-ppm="-5">−</button>
+        <div class="ppm"><b class="ppmVal">150</b><small>ppm</small></div>
+        <button class="btn small" data-ppm="5">+</button>
+        <button class="btn play" id="tpPlay">▶</button>
+      </div>
+    </section>
+
+    <!-- ============ COLUMNA DERECHA: estado / iluminación ============ -->
+    <section class="col col-status">
+      <header class="status-head">
+        <h1>Estudio</h1>
+        <nav class="tabs">
+          <button class="tab active" data-tab="status">Estado</button>
+          <button class="tab" data-tab="light">Iluminación</button>
+        </nav>
+        <span class="conn" id="conn" title="Conexión con el servidor"></span>
+      </header>
+
+      <div class="tab-panel" data-panel="status">
+        <div class="card">
+          <b id="stModel">—</b>
+          <small id="stLens"></small>
+        </div>
+        <div class="card center">
+          <small class="label">Estado</small>
+          <div class="big" id="stState">—</div>
+          <small id="stMsg"></small>
+        </div>
+        <div class="card">
+          <small class="label">Tiempo de grabación disponible</small>
+          <div class="big-left" id="stTime">—</div>
+          <div class="bar"><i id="stTimeBar"></i></div>
+          <small id="stStorage"></small>
+        </div>
+        <div class="row tight">
+          <div class="card grow">
+            <small class="label">Batería</small>
+            <div class="big-left" id="stBattery">—</div>
+            <div class="bar"><i id="stBatteryBar"></i></div>
+          </div>
+          <div class="card grow">
+            <small class="label">Temperatura</small>
+            <div class="big-left" id="stTemp">—</div>
+            <small id="stZoom"></small>
+          </div>
+        </div>
+        <div class="card">
+          <small class="label">Exposición</small>
+          <div id="stExposure">—</div>
+        </div>
+        <div class="card grow">
+          <small class="label">Últimos clips</small>
+          <ul id="stClips" class="clips"></ul>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="light" hidden>
+        <div class="card">
+          <small class="label">1 · Imagen de referencia</small>
+          <div class="ref-row">
+            <div class="thumb"><img id="refImg" alt=""><canvas id="refZones"></canvas></div>
+            <div class="thumb"><canvas id="liveThumb"></canvas></div>
+          </div>
+          <div class="row tight">
+            <label class="btn file">Cargar referencia<input type="file" id="refFile" accept="image/*" hidden></label>
+            <button class="btn" id="refFromLive">Usar toma actual</button>
+          </div>
+          <small>Encuadra igual que la referencia: sujeto al centro. Las zonas marcadas son las que se miden.</small>
+        </div>
+        <div class="card">
+          <small class="label">2 · Tu set (opcional, para calcular distancias)</small>
+          <div class="grid-form">
+            <label>Luz principal (cm)<input type="number" id="dKey" min="0" placeholder="120"></label>
+            <label>Relleno (cm)<input type="number" id="dFill" min="0" placeholder="150"></label>
+            <label>Fondo (cm)<input type="number" id="dBg" min="0" placeholder="80"></label>
+            <label>FPS<input type="number" id="optFps" value="30" min="1"></label>
+            <label>ISO máx.<input type="number" id="optMaxIso" value="3200" min="100"></label>
+            <label class="check"><input type="checkbox" id="optAperture"> Permitir cambiar apertura</label>
+          </div>
+        </div>
+        <div class="row tight">
+          <button class="btn primary" id="measureBtn">Medir</button>
+          <button class="btn" id="applyBtn" disabled>Aplicar a la cámara</button>
+          <button class="btn" id="autoBtn">Igualar automático</button>
+        </div>
+        <div class="card grow" id="lightResult"><small>Carga una referencia y pulsa “Medir”.</small></div>
+      </div>
+
+      <div class="row tight">
+        <button class="btn" id="reconnectBtn">⟳ Reconectar</button>
+        <button class="btn" id="helpBtn">⌨ Atajos</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lista / editor de guiones -->
+  <dialog id="scriptsDlg">
+    <form method="dialog" class="dlg">
+      <h2>Guiones</h2>
+      <ul id="scriptList" class="script-list"></ul>
+      <div class="row tight">
+        <button class="btn" id="newScript" value="new">+ Nuevo guion</button>
+        <button class="btn" value="close">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="editDlg">
+    <form method="dialog" class="dlg wide">
+      <h2>Editar guion</h2>
+      <input id="editTitle" placeholder="Título (p. ej. YT01 · Contrataste un gerente)">
+      <textarea id="editBody" rows="16" placeholder="Escribe o pega tu guion.&#10;Usa '## SECCIÓN' para marcar bloques."></textarea>
+      <div class="row tight">
+        <button class="btn danger" value="delete">Eliminar</button>
+        <span class="grow"></span>
+        <button class="btn" value="cancel">Cancelar</button>
+        <button class="btn primary" value="save">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="helpDlg">
+    <form method="dialog" class="dlg">
+      <h2>Atajos (teclado o control remoto)</h2>
+      <ul class="help">
+        <li><kbd>Espacio</kbd> Iniciar / pausar teleprompter</li>
+        <li><kbd>R</kbd> Grabar / detener</li>
+        <li><kbd>+</kbd> <kbd>−</kbd> Velocidad del teleprompter</li>
+        <li><kbd>Inicio</kbd> Volver al principio del guion</li>
+        <li><kbd>← ↑ → ↓</kbd> Moverse entre botones · <kbd>Enter</kbd> pulsar</li>
+      </ul>
+      <button class="btn" value="close">Cerrar</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

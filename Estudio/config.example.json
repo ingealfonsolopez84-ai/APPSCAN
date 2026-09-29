@@ -1,0 +1,29 @@
+{
+  "refreshMs": 2000,
+  "cameras": [
+    {
+      "id": "sony",
+      "name": "Sony (USB)",
+      "driver": "sony-usb",
+      "bitrateMbps": 100,
+      "maxPreviewFps": 10,
+      "previewSource": "camera"
+    },
+    {
+      "id": "sony-wifi",
+      "name": "Sony (Wi-Fi)",
+      "driver": "sony-wifi",
+      "endpoint": "http://192.168.122.1:8080/sony/camera"
+    },
+    {
+      "id": "osmo",
+      "name": "DJI Osmo Action",
+      "driver": "dji-osmo"
+    },
+    {
+      "id": "demo",
+      "name": "Cámara simulada",
+      "driver": "mock"
+    }
+  ]
+}

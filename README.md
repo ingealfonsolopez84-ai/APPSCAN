@@ -1,7 +1,8 @@
-# Apps iOS de este repositorio
+# Apps de este repositorio
 
 - **Escáner 3D (Scan3D)** — digitaliza objetos reales para impresión 3D con la cámara y el LiDAR (este documento).
 - **[NutriLista](NutriLista/README.md)** — convierte la foto del menú de tu nutriólogo en lista de compras, presupuesto y recetario (carpeta `NutriLista/`).
+- **[Estudio](Estudio/README.md)** — portal web para controlar cámaras Sony y DJI Osmo Action, con teleprompter y asistente de iluminación (carpeta `Estudio/`).
 
 ---
 
