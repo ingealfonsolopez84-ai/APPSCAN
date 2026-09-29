@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node server/index.js",
     "test": "node --test test/*.test.js",
-    "diagnostico": "node scripts/diagnostico.js"
+    "diagnostico": "node scripts/diagnostico.js",
+    "prueba-shell": "node scripts/prueba-shell.js"
   }
 }

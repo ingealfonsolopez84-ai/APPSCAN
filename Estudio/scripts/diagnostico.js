@@ -182,6 +182,7 @@ if (args.has('--escribir')) {
   for (const [key, target] of tests) {
     const s = driver.state.settings[key];
     if (!s || !target) { warn(`${key}: no disponible`); continue; }
+    if (s.readonly && key !== 'wb') { log(`  ➖ ${key}: bloqueado por la cámara en este modo (se omite)`); continue; }
     const before = s.value;
     try {
       await driver.applySetting(key, target);
