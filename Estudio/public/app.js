@@ -94,7 +94,8 @@ function selectCamera(id) {
   store.set('activeCam', id);
   $$('.cam-tab').forEach((t) => t.classList.toggle('active', t.dataset.id === id));
   const caps = app.active.caps;
-  $('#zoomBox').style.visibility = caps.zoom ? 'visible' : 'hidden';
+  $('#zoomBox').hidden = !caps.zoom;
+  $('#btnRec').classList.toggle('wide', !caps.zoom);
   $('#focusBox').hidden = !caps.focus;
   $('#smoothBtn').hidden = app.active.preview !== 'mjpeg';
   $('#smoothBtn').classList.toggle('on', Boolean(app.smooth[id]));

@@ -172,3 +172,4 @@ kbd { background: var(--card); border: 1px solid var(--line); border-radius: 4px
   .settings { grid-template-columns: repeat(3, 1fr); }
   .btn-rec { font-size: 20px; }
 }
+.btn-rec.wide { flex: 1; min-height: 72px; }
