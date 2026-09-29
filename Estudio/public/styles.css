@@ -202,4 +202,4 @@ kbd { background: var(--card); border: 1px solid var(--line); border-radius: 4px
 .meter-big .marks em { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.25); }
 .meter-big b { position: absolute; right: 6px; top: 0; font-size: 12px; line-height: 18px; }
 .hint.left { text-align: left; display: block; margin-top: 4px; color: var(--muted); }
-#audioBox select { width: 100%; }
+#audioBox select { width: 100%; flex: 1; min-width: 0; }

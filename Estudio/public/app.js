@@ -470,8 +470,12 @@ async function setupAudio(cam) {
     if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
-    audioCtx.createMediaStreamSource(stream).connect(analyser);
-    app.audio[cam.id] = { stream, analyser, buf: new Float32Array(analyser.fftSize), level: -90, peak: -90, peakAt: 0, deviceId };
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    const monitor = audioCtx.createGain();
+    monitor.gain.value = 0;
+    source.connect(monitor).connect(audioCtx.destination);
+    app.audio[cam.id] = { stream, analyser, monitor, buf: new Float32Array(analyser.fftSize), level: -90, peak: -90, peakAt: 0, deviceId };
   } catch (e) {
     toast(`${cam.name}: no pude abrir el audio (${e.message})`, true);
   }
@@ -481,6 +485,7 @@ async function fillAudioSources() {
   const cam = app.active;
   if (!cam) return;
   $('#audioCamName').textContent = cam.name;
+  applyMonitor();
   const inputs = await audioInputs();
   const chosen = await defaultAudioFor(cam);
   const sel = $('#audioSelect');
@@ -491,14 +496,29 @@ async function fillAudioSources() {
   const hint = $('#audioHint');
   if (!inputs.some((d) => d.label)) hint.textContent = 'Permite el micrófono en el navegador para ver las entradas de audio.';
   else if (cam.driver === 'dji-osmo') hint.textContent = 'Con la Osmo en modo cámara web, elige su entrada ("Osmo…") para grabar su audio por separado.';
-  else if (cam.caps.record !== 'browser') hint.textContent = 'La Sony graba su audio en la tarjeta. Para verlo aquí, conecta su HDMI a una capturadora y elige esa entrada. También puedes escuchar con audífonos en la cámara.';
+  else if (cam.caps.record !== 'browser') hint.textContent = 'La Sony graba su audio en la tarjeta. Para verlo aquí: su salida de audífonos → adaptador de audio USB, o su HDMI → capturadora; luego elige esa entrada.';
   else hint.textContent = '';
 }
+
+// Escuchar una fuente por la salida de la Mac (usa audífonos para evitar acople).
+app.monitorId = null;
+function applyMonitor() {
+  for (const [id, a] of Object.entries(app.audio)) a.monitor.gain.value = id === app.monitorId ? 1 : 0;
+  $('#monitorBtn').classList.toggle('on', app.monitorId === app.active?.id && Boolean(app.audio[app.active.id]));
+}
+$('#monitorBtn').onclick = () => {
+  if (!app.audio[app.active.id]) return toast('Primero elige una fuente de audio', true);
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+  app.monitorId = app.monitorId === app.active.id ? null : app.active.id;
+  applyMonitor();
+  if (app.monitorId) toast('Escuchando por la salida de la Mac: usa audífonos para evitar acople');
+};
 
 $('#audioSelect').onchange = async (e) => {
   if (app.recs[app.active.id]) { toast('No se puede cambiar el audio mientras graba', true); fillAudioSources(); return; }
   store.set(`audio.${app.active.id}`, e.target.value);
   await setupAudio(app.active);
+  applyMonitor();
 };
 
 // Pide permiso de micrófono una vez para poder leer los nombres de las entradas.

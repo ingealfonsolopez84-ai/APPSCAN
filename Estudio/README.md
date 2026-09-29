@@ -118,7 +118,12 @@ Límites: la Osmo en modo cámara web entrega como máximo 1080p a 30 fps. Si qu
 
 La caja **Audio** (columna izquierda) muestra la fuente de audio de la cámara seleccionada con un medidor en dBFS: verde hasta −12 dB, amarillo de −12 a −3 dB y rojo a partir de −3 dB (riesgo de saturar). Cada recuadro de vista previa tiene además una barra vertical con su nivel.
 
-- **Sony**: por USB de control no viaja audio. Para ver en el portal lo que capta el micrófono conectado a la Sony, lleva su **HDMI a una capturadora** y elige esa entrada ("Cam Link", "USB Video"…). Si no, escucha con audífonos en la cámara. La Sony siempre graba su propio audio en la tarjeta.
+- **Sony**: por USB de control no viaja audio. Opciones para monitorearla:
+  1. **En la propia cámara**: activa *Visualización del nivel de audio* (menú Cámara); con la pantalla girada hacia ti ves los medidores mientras grabas.
+  2. **Salida de audífonos de la ZV-E10 → adaptador de audio USB** con entrada de micrófono (~10 USD) → elige "USB Audio" en la caja Audio. Deja fijo el volumen de audífonos de la cámara para que el medidor sea comparable.
+  3. **HDMI → capturadora** (también da la vista fluida) → elige la capturadora como audio.
+  La Sony siempre graba su propio audio en la tarjeta.
+- **🎧 Escuchar**: reproduce la fuente elegida por la salida de la Mac (usa audífonos para evitar acople).
 - **Osmo en modo cámara web**: suele aparecer como micrófono propio ("Osmo…"). Elígelo y su grabación llevará **ese audio, independiente del de la Sony**.
 - También puedes asignar a cualquier cámara que graba en el navegador otro micrófono conectado a la Mac (micrófono USB o receptor inalámbrico).
 
