@@ -22,9 +22,21 @@ const ALIASES = {
   manualfocus: ['manualfocus', 'manualfocusdrive'],
   autofocus: ['autofocus', 'autofocusdrive'],
   zoom: ['zoom', 'zoomposition'],
+  focusmode: ['focusmode'],
   lens: ['lensname', 'lens'],
   model: ['cameramodel', 'model'],
+  // Propiedades Sony sin nombre en gphoto2 (aparecen como /main/other/dXXX).
+  recStatus: ['d21d'], // Estado de grabación de película (1 = grabando)
+  mediaTime: ['d24a'], // Tiempo de grabación restante en SLOT1 (segundos)
+  overheat: ['d251'], // Estado de sobrecalentamiento (0 normal, 1 aviso, 2 sobrecalentada)
+  zoomOp: ['d2dd'], // Operación de zoom motorizado (experimental)
 };
+
+// Forzamos gphoto2 en inglés: los valores ("Auto ISO", "Choose Color Temperature"...)
+// no cambian con el idioma del sistema y el portal los reconoce siempre.
+const GP_ENV = { ...process.env, LANG: 'C', LC_ALL: 'C', LANGUAGE: 'C' };
+const KELVIN_MODE = /temp|tamp|kelvin/i;
+const OVERHEAT = { 0: 'Normal', 1: 'Calentándose', 2: 'Sobrecalentada' };
 
 export function parseConfigBlocks(text) {
   const blocks = {};
@@ -75,7 +87,7 @@ export class Gphoto2Driver extends CameraDriver {
   run(args, { binary = false, timeout = 15000 } = {}) {
     const full = [...(this.port ? ['--port', this.port] : []), ...args];
     const job = () => new Promise((resolve, reject) => {
-      execFile(this.bin, full, { encoding: binary ? 'buffer' : 'utf8', timeout, maxBuffer: 32 * 1024 * 1024 },
+      execFile(this.bin, full, { encoding: binary ? 'buffer' : 'utf8', timeout, maxBuffer: 32 * 1024 * 1024, env: GP_ENV },
         (err, stdout, stderr) => {
           if (err) {
             const msg = String(stderr || err.message).split('\n').find((l) => /\*\*\*|Error|error/.test(l)) || err.message;
@@ -105,7 +117,9 @@ export class Gphoto2Driver extends CameraDriver {
       }
       this.caps.settings = ['iso', 'aperture', 'shutter', 'wb', 'ev'].filter((k) => this.names[k]);
       this.caps.focus = Boolean(this.names.manualfocus || this.names.autofocus);
-      this.caps.zoom = Boolean(this.names.zoom);
+      // El "zoom" que expone Sony es de solo lectura; el zoom motorizado por
+      // la propiedad d2dd aún no está verificado, así que va detrás de una opción.
+      this.caps.zoom = Boolean(this.config.experimentalZoom && this.names.zoomOp);
       this.caps.record = Boolean(this.names.movie);
       this.state.connected = true;
       this.state.message = 'Lista para grabar';
@@ -121,7 +135,8 @@ export class Gphoto2Driver extends CameraDriver {
     // Leer todo en una sola llamada para no bloquear la cola.
     const wanted = full
       ? Object.values(this.names)
-      : ['iso', 'aperture', 'shutter', 'wb', 'ev', 'battery', 'zoom'].map((k) => this.names[k]).filter(Boolean);
+      : ['iso', 'aperture', 'shutter', 'wb', 'whitebalance', 'ev', 'battery', 'recStatus', 'mediaTime', 'overheat']
+        .map((k) => this.names[k]).filter(Boolean);
     try {
       const args = wanted.flatMap((n) => ['--get-config', n]);
       // --get-config imprime el bloque sin la ruta; la añadimos para poder separar.
@@ -133,19 +148,36 @@ export class Gphoto2Driver extends CameraDriver {
         const choices = b.choices.length ? b.choices : rangeChoices(b);
         this.state.settings[key] = { value: b.current, choices, readonly: b.readonly === '1' };
       }
+      // En Sony los Kelvin son de solo lectura hasta elegir el modo "temperatura de
+      // color"; applySetting lo cambia solo, así que el ajuste sí es editable.
+      const wbMode = blocks[this.names.whitebalance];
+      if (this.state.settings.wb && wbMode?.choices.some((c) => KELVIN_MODE.test(c))) {
+        this.state.settings.wb.readonly = false;
+        this.state.settings.wb.mode = wbMode.current;
+      }
+      const rec = blocks[this.names.recStatus];
+      if (rec) {
+        const recording = rec.current === '1';
+        if (recording !== this.state.recording) {
+          this.state.recording = recording;
+          this.state.recordingSince = recording ? (this.state.recordingSince || Date.now()) : null;
+          this.state.message = recording ? 'Grabando' : 'Lista para grabar';
+        }
+      }
+      const media = blocks[this.names.mediaTime];
+      if (media && Number.isFinite(Number(media.current))) {
+        this.state.storage = { ...(this.state.storage || {}), recordableMinutes: Math.floor(Number(media.current) / 60) };
+      }
+      const heat = blocks[this.names.overheat];
+      if (heat) this.state.temperature = OVERHEAT[heat.current] || heat.current;
       const bat = blocks[this.names.battery];
       if (bat) this.state.battery = Number(String(bat.current).replace(/[^0-9.]/g, '')) || null;
-      const zoom = blocks[this.names.zoom];
-      if (zoom) {
-        this.state.zoom = zoom.current;
-        this.zoomStep = Number(zoom.step) || 1;
-      }
       if (full) {
         const model = blocks[this.names.model];
         const lens = blocks[this.names.lens];
         if (model) this.state.model = model.current;
         if (lens) this.state.lens = lens.current;
-        await this.refreshStorage();
+        if (!this.state.storage) await this.refreshStorage();
       }
     } catch (e) {
       this.state.message = `Error leyendo ajustes: ${e.message}`;
@@ -181,7 +213,7 @@ export class Gphoto2Driver extends CameraDriver {
       // Asegura el modo "temperatura de color" antes de fijar los Kelvin.
       const wbOut = await this.run(['--get-config', this.names.whitebalance]);
       const block = parseConfigBlocks(`/${this.names.whitebalance}\n${wbOut}`)[this.names.whitebalance];
-      const kelvinMode = block?.choices.find((c) => /temp|kelvin|^k$/i.test(c));
+      const kelvinMode = block?.choices.find((c) => KELVIN_MODE.test(c));
       if (kelvinMode && block.current !== kelvinMode) {
         await this.run(['--set-config', `${this.names.whitebalance}=${kelvinMode}`]);
       }
@@ -194,29 +226,55 @@ export class Gphoto2Driver extends CameraDriver {
     this.state.recording = start;
     this.state.recordingSince = start ? Date.now() : null;
     this.state.message = start ? 'Grabando' : 'Lista para grabar';
-    if (!start) setTimeout(() => this.refreshStorage(), 2000);
   }
 
+  // Experimental (Sony d2dd): 1 = tele, -1 = gran angular, 0 = detener.
   async zoom(direction, start) {
-    if (!start || !this.names.zoom) return;
-    const cur = Number(this.state.zoom) || 0;
-    const step = this.zoomStep || 1;
-    await this.run(['--set-config', `${this.names.zoom}=${cur + (direction === 'in' ? step : -step)}`]);
+    if (!this.names.zoomOp) throw new Error('Zoom remoto no disponible');
+    const v = start ? (direction === 'in' ? 1 : -1) : 0;
+    await this.run(['--set-config', `${this.names.zoomOp}=${v}`]);
+  }
+
+  async getBlock(name) {
+    const out = await this.run(['--get-config', name]);
+    return parseConfigBlocks(`/${name}\n${out}`)[name];
   }
 
   async focus(action) {
-    if (action === 'af' && this.names.autofocus) {
-      await this.run(['--set-config', `${this.names.autofocus}=1`]);
+    const fm = this.names.focusmode;
+    if (action === 'af') {
+      // Vuelve a autoenfoque si estaba en manual y hace un "medio disparo".
+      if (fm) {
+        const b = await this.getBlock(fm);
+        const af = b?.choices.find((c) => /AF-C|continuous/i.test(c)) || b?.choices.find((c) => /AF/.test(c));
+        if (af && /manual|^MF$/i.test(b.current)) await this.run(['--set-config', `${fm}=${af}`]);
+      }
+      if (this.names.autofocus) {
+        await this.run(['--set-config', `${this.names.autofocus}=1`]);
+        setTimeout(() => this.run(['--set-config', `${this.names.autofocus}=0`]).catch(() => {}), 800);
+      }
       return;
     }
     if (!this.names.manualfocus) throw new Error('Esta cámara no expone enfoque manual por USB');
-    // Sony: "Near 1..3" / "Far 1..3"; Canon: pasos numéricos con signo.
-    const amount = { near2: 3, near: 1, far: 1, far2: 3 }[action] || 1;
-    const dir = action.startsWith('near') ? 'Near' : 'Far';
-    const out = await this.run(['--get-config', this.names.manualfocus]);
-    const block = parseConfigBlocks(`/${this.names.manualfocus}\n${out}`)[this.names.manualfocus];
-    const named = block?.choices.find((c) => c.toLowerCase() === `${dir} ${amount}`.toLowerCase());
-    const value = named || String((dir === 'Near' ? -1 : 1) * amount * 10);
+    // El enfoque paso a paso solo actúa en modo manual (MF).
+    if (fm) {
+      const b = await this.getBlock(fm);
+      const mf = b?.choices.find((c) => /^manual$|^MF$/i.test(c));
+      if (mf && b.current !== mf) await this.run(['--set-config', `${fm}=${mf}`]);
+    }
+    const block = await this.getBlock(this.names.manualfocus);
+    const amount = { near2: 6, near: 2, far: 2, far2: 6 }[action] || 2;
+    const sign = action.startsWith('near') ? -1 : 1;
+    let value;
+    if (block?.choices.length) {
+      // Algunas cámaras usan nombres: "Near 1..3" / "Far 1..3".
+      const dir = sign < 0 ? 'Near' : 'Far';
+      value = block.choices.find((c) => c.toLowerCase() === `${dir} ${amount > 2 ? 3 : 1}`.toLowerCase());
+    }
+    if (!value) {
+      const lo = Number(block?.bottom ?? -7); const hi = Number(block?.top ?? 7);
+      value = String(Math.max(lo, Math.min(hi, sign * amount)));
+    }
     await this.run(['--set-config', `${this.names.manualfocus}=${value}`]);
   }
 
