@@ -80,6 +80,8 @@ async function init() {
   const initial = cameras.find((c) => c.id === store.get('activeCam')) || cameras[0];
   if (initial) selectCamera(initial.id);
   connectEvents();
+  initAudio();
+  requestAnimationFrame(audioLoop);
 }
 
 function connectEvents() {
@@ -103,6 +105,7 @@ function selectCamera(id) {
   $('#smoothBtn').hidden = app.active.preview !== 'mjpeg';
   $('#smoothBtn').classList.toggle('on', Boolean(app.smooth[id]));
   layoutPreviews();
+  fillAudioSources();
   render();
 }
 
@@ -121,9 +124,9 @@ function tileFor(cam) {
   const el = document.createElement('div');
   el.className = 'preview';
   el.innerHTML = `<img alt="" hidden><video autoplay muted playsinline hidden></video><canvas></canvas>
-    <div class="preview-empty">Sin vista previa</div><span class="fps"></span><span class="tile-label"></span>`;
+    <div class="preview-empty">Sin vista previa</div><span class="fps"></span><span class="tile-label"></span><div class="vu" hidden><i></i></div>`;
   el.onclick = () => { if (app.podcast && app.active.id !== cam.id) selectCamera(cam.id); };
-  const t = { el, img: $('img', el), video: $('video', el), canvas: $('canvas', el), empty: $('.preview-empty', el), fps: $('.fps', el), label: $('.tile-label', el), mode: null };
+  const t = { vu: $('.vu', el), vuBar: $('.vu i', el), el, img: $('img', el), video: $('video', el), canvas: $('canvas', el), empty: $('.preview-empty', el), fps: $('.fps', el), label: $('.tile-label', el), mode: null };
   app.tiles[cam.id] = t;
   $('#previews').append(el);
   return t;
@@ -368,8 +371,9 @@ function clap() {
 async function startLocalRecord(cam, session) {
   const stream = app.streams[cam.id];
   if (!stream) throw new Error(`${cam.name}: primero abre su vista previa`);
-  let audio = null;
-  try { audio = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch { toast(`${cam.name}: grabando sin audio (sin permiso de micrófono)`); }
+  // Cada cámara graba con su propia fuente de audio (la que elegiste en "Audio").
+  const audio = app.audio[cam.id]?.stream;
+  if (!audio) toast(`${cam.name}: grabando sin audio (elige una fuente en "Audio")`);
   const tracks = [...stream.getVideoTracks(), ...(audio ? audio.getAudioTracks() : [])];
   const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t));
   const ext = type.includes('mp4') ? 'mp4' : 'webm';
@@ -384,7 +388,6 @@ async function startLocalRecord(cam, session) {
   };
   entry.done = new Promise((resolve) => {
     rec.onstop = async () => {
-      audio?.getTracks().forEach((t) => t.stop());
       await entry.uploads;
       const r = await api(`recordings/${id}/stop`, {}).catch(() => null);
       if (r) {
@@ -424,6 +427,123 @@ $$('[data-zoom]').forEach((b) => {
 });
 $$('[data-focus]').forEach((b) => { b.onclick = () => camApi('focus', { action: b.dataset.focus }).catch(() => {}); });
 $('#reconnectBtn').onclick = async () => { await camApi('connect'); restartPreview(app.active); toast('Reconectado'); };
+
+// ---------------- Audio por cámara ----------------
+// Cada cámara tiene una fuente de audio (entrada de la Mac) con su medidor:
+//  - Sony: el audio llega por la capturadora HDMI (incluye el micrófono conectado a la cámara).
+//  - Osmo en modo cámara web: suele aparecer como micrófono propio.
+//  - O cualquier micrófono USB / receptor inalámbrico conectado a la Mac.
+app.audio = {}; // id de cámara -> { stream, analyser, buf, level, peak, peakAt, deviceId }
+let audioCtx = null;
+const AUTO_AUDIO = {
+  'dji-osmo': /osmo|dji/i,
+  default: /cam ?link|usb video|capture|hdmi|elgato|ugreen|av to usb|usb3/i,
+};
+
+async function audioInputs() {
+  if (!navigator.mediaDevices?.enumerateDevices) return [];
+  return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput' && d.deviceId !== 'communications');
+}
+
+// Elige una fuente automáticamente la primera vez (por el nombre del dispositivo).
+async function defaultAudioFor(cam) {
+  const saved = store.get(`audio.${cam.id}`, null);
+  if (saved) return saved;
+  const inputs = await audioInputs();
+  const match = inputs.find((d) => (AUTO_AUDIO[cam.driver] || AUTO_AUDIO.default).test(d.label));
+  return match ? match.deviceId : 'none';
+}
+
+async function setupAudio(cam) {
+  const current = app.audio[cam.id];
+  const deviceId = await defaultAudioFor(cam);
+  if (current && current.deviceId === deviceId) return;
+  if (app.recs[cam.id]) return; // no cambiar el audio a media grabación
+  current?.stream.getTracks().forEach((t) => t.stop());
+  delete app.audio[cam.id];
+  if (deviceId === 'none' || !navigator.mediaDevices?.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: deviceId === 'default' ? undefined : { exact: deviceId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } },
+    });
+    audioCtx ||= new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    app.audio[cam.id] = { stream, analyser, buf: new Float32Array(analyser.fftSize), level: -90, peak: -90, peakAt: 0, deviceId };
+  } catch (e) {
+    toast(`${cam.name}: no pude abrir el audio (${e.message})`, true);
+  }
+}
+
+async function fillAudioSources() {
+  const cam = app.active;
+  if (!cam) return;
+  $('#audioCamName').textContent = cam.name;
+  const inputs = await audioInputs();
+  const chosen = await defaultAudioFor(cam);
+  const sel = $('#audioSelect');
+  sel.innerHTML = '';
+  sel.append(new Option('Sin audio', 'none'));
+  for (const d of inputs) sel.append(new Option(d.label || `Entrada ${sel.length}`, d.deviceId));
+  sel.value = inputs.some((d) => d.deviceId === chosen) ? chosen : 'none';
+  const hint = $('#audioHint');
+  if (!inputs.some((d) => d.label)) hint.textContent = 'Permite el micrófono en el navegador para ver las entradas de audio.';
+  else if (cam.driver === 'dji-osmo') hint.textContent = 'Con la Osmo en modo cámara web, elige su entrada ("Osmo…") para grabar su audio por separado.';
+  else if (cam.caps.record !== 'browser') hint.textContent = 'La Sony graba su audio en la tarjeta. Para verlo aquí, conecta su HDMI a una capturadora y elige esa entrada. También puedes escuchar con audífonos en la cámara.';
+  else hint.textContent = '';
+}
+
+$('#audioSelect').onchange = async (e) => {
+  if (app.recs[app.active.id]) { toast('No se puede cambiar el audio mientras graba', true); fillAudioSources(); return; }
+  store.set(`audio.${app.active.id}`, e.target.value);
+  await setupAudio(app.active);
+};
+
+// Pide permiso de micrófono una vez para poder leer los nombres de las entradas.
+async function initAudio() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach((t) => t.stop());
+  } catch { /* sin permiso: se muestra el aviso en la caja de audio */ }
+  for (const cam of app.cameras) await setupAudio(cam);
+  fillAudioSources();
+}
+navigator.mediaDevices?.addEventListener?.('devicechange', () => fillAudioSources());
+// Chrome deja el audio en pausa hasta la primera interacción.
+addEventListener('pointerdown', () => { if (audioCtx?.state === 'suspended') audioCtx.resume(); }, { capture: true });
+
+// Medidor: pico en dBFS con caída suave y retención del pico.
+function toDb(x) { return x > 0 ? 20 * Math.log10(x) : -90; }
+const dbToPct = (db) => Math.max(0, Math.min(100, ((db + 60) / 60) * 100)); // -60..0 dBFS
+const levelClass = (db) => (db > -3 ? 'clip' : db > -12 ? 'warn' : '');
+
+function audioLoop() {
+  const now = performance.now();
+  for (const cam of app.cameras) {
+    const a = app.audio[cam.id];
+    const t = app.tiles?.[cam.id];
+    if (t) t.vu.hidden = !a;
+    if (!a) continue;
+    a.analyser.getFloatTimeDomainData(a.buf);
+    let peak = 0;
+    for (let i = 0; i < a.buf.length; i++) { const v = Math.abs(a.buf[i]); if (v > peak) peak = v; }
+    const db = toDb(peak);
+    a.level = Math.max(db, a.level - 1.2); // caída ~70 dB/s
+    if (db > a.peak || now - a.peakAt > 1500) { a.peak = db; a.peakAt = now; }
+    if (t) {
+      t.vuBar.style.height = `${dbToPct(a.level)}%`;
+      t.vuBar.className = levelClass(a.level);
+    }
+  }
+  const a = app.audio[app.active?.id];
+  const bar = $('#audioBar');
+  bar.style.width = `${a ? dbToPct(a.level) : 0}%`;
+  bar.className = a ? levelClass(a.level) : '';
+  $('#audioDb').textContent = a ? `${a.peak <= -89 ? '−∞' : Math.round(a.peak)} dB` : '—';
+  requestAnimationFrame(audioLoop);
+}
 
 // ---------------- Escenas (ajustes guardados) ----------------
 const DEFAULT_SCENES = [

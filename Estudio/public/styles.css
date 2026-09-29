@@ -190,3 +190,16 @@ kbd { background: var(--card); border: 1px solid var(--line); border-radius: 4px
 .podcast-bar { display: flex; gap: 6px; }
 .podcast-bar .btn { font-weight: 600; }
 .previews.multi .fps { top: 6px; bottom: auto; }
+
+/* Medidores de audio */
+.vu { position: absolute; right: 4px; top: 8px; bottom: 8px; width: 6px; background: rgba(0,0,0,.5);
+  border-radius: 3px; overflow: hidden; z-index: 2; }
+.vu i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--ok); }
+.vu i.warn, .meter-big i.warn { background: var(--accent); }
+.vu i.clip, .meter-big i.clip { background: var(--rec); }
+.meter-big { position: relative; height: 18px; background: #0a1120; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.meter-big i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ok); }
+.meter-big .marks em { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.25); }
+.meter-big b { position: absolute; right: 6px; top: 0; font-size: 12px; line-height: 18px; }
+.hint.left { text-align: left; display: block; margin-top: 4px; color: var(--muted); }
+#audioBox select { width: 100%; }
