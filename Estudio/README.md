@@ -101,6 +101,19 @@ DJI **no publica una API** para cambiar ISO o velocidad de las Osmo Action desde
 
 Siguiente paso posible: DJI publicó el protocolo Bluetooth para iniciar/detener grabación en la microSD (repositorio `dji-sdk/Osmo-GPS-Controller-Demo`, Osmo Action 4/5 Pro y Osmo 360). Se puede añadir como driver usando un ESP32 o Bluetooth del equipo.
 
+## Modo podcast (varias cámaras a la vez)
+
+Con dos o más cámaras configuradas aparece el botón **🎙 Modo podcast**:
+
+- Muestra **todas las cámaras lado a lado**. Toca un recuadro para elegir qué cámara controlan los ajustes (ISO, enfoque, etc.).
+- **GRABAR TODAS** inicia y detiene la grabación en todas las cámaras a la vez:
+  - La **Sony** graba en su tarjeta SD, con su calidad completa.
+  - La **Osmo** (modo cámara web) se graba desde el navegador y se guarda mientras grabas en `Estudio/grabaciones/`, con el audio del micrófono de la Mac. Los archivos de la misma sesión comparten nombre: `2026-09-29-20-28-46_osmo.mp4`.
+- **Claqueta** (activada por defecto): 1.5 s después de iniciar suena un pitido y la pantalla destella. Úsalo en tu editor para alinear los videos por el audio (el pitido queda grabado por el micrófono de la Sony y por el de la Mac).
+- Mientras graba, la vista previa de la Osmo no se apaga aunque cambies de pestaña, y el navegador avisa antes de cerrar la página.
+
+Límites: la Osmo en modo cámara web entrega como máximo 1080p a 30 fps. Si quieres 4K en la Osmo, grábala en su propia tarjeta (con su botón) y usa la claqueta para sincronizar.
+
 ## Asistente de iluminación
 
 Es la parte que mide la toma y calcula cómo igualarla a tu imagen de referencia.

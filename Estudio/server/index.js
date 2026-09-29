@@ -1,5 +1,6 @@
 import http from 'node:http';
 import fs from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDriver } from './drivers/index.js';
@@ -88,6 +89,23 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- Almacenamiento simple (guiones, escenas) ----------
 const STORES = new Set(['guiones', 'escenas', 'referencias']);
+
+// ---------- Grabaciones del navegador (Osmo en modo webcam, capturadoras) ----------
+// El navegador manda el video en trozos mientras graba y aquí se van escribiendo
+// a disco: así una grabación larga no depende de la memoria del navegador.
+const RECORDINGS = path.join(ROOT, 'grabaciones');
+const recordings = new Map(); // id -> { file, stream }
+const safeName = (s) => String(s).replace(/[^a-zA-Z0-9_-]+/g, '-').slice(0, 60);
+
+async function startRecording({ camera, ext, session }) {
+  await fs.mkdir(RECORDINGS, { recursive: true });
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+  const name = `${safeName(session || stamp)}_${safeName(camera)}.${ext === 'mp4' ? 'mp4' : 'webm'}`;
+  const file = path.join(RECORDINGS, name);
+  const id = Math.random().toString(36).slice(2, 10);
+  recordings.set(id, { file, stream: createWriteStream(file) });
+  return { id, file: path.relative(ROOT, file) };
+}
 async function readStore(name) {
   try { return JSON.parse(await fs.readFile(path.join(DATA, `${name}.json`), 'utf8')); } catch { return null; }
 }
@@ -155,6 +173,24 @@ const server = http.createServer(async (req, res) => {
       const t = setInterval(push, 1000);
       req.on('close', () => clearInterval(t));
       return;
+    }
+
+    if (parts[1] === 'recordings' && req.method === 'POST') {
+      if (parts[2] === 'start') return send(res, 200, await startRecording(await readBody(req)));
+      const rec = recordings.get(parts[2]);
+      if (!rec) return send(res, 404, { error: 'Grabación no encontrada' });
+      if (parts[3] === 'chunk') {
+        for await (const c of req) {
+          if (!rec.stream.write(c)) await new Promise((r) => rec.stream.once('drain', r));
+        }
+        return send(res, 200, { ok: true });
+      }
+      if (parts[3] === 'stop') {
+        await new Promise((r) => rec.stream.end(r));
+        recordings.delete(parts[2]);
+        const { size } = await fs.stat(rec.file);
+        return send(res, 200, { file: path.relative(ROOT, rec.file), size });
+      }
     }
 
     if (parts[1] === 'store' && STORES.has(parts[2])) {

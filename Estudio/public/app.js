@@ -74,6 +74,9 @@ async function init() {
     tabs.append(b);
   }
   buildSettings();
+  $('#podcastBar').hidden = cameras.length < 2;
+  if (cameras.length < 2) app.podcast = false;
+  $('#podcastBtn').classList.toggle('on', app.podcast);
   const initial = cameras.find((c) => c.id === store.get('activeCam')) || cameras[0];
   if (initial) selectCamera(initial.id);
   connectEvents();
@@ -99,90 +102,163 @@ function selectCamera(id) {
   $('#focusBox').hidden = !caps.focus;
   $('#smoothBtn').hidden = app.active.preview !== 'mjpeg';
   $('#smoothBtn').classList.toggle('on', Boolean(app.smooth[id]));
-  setupPreview();
+  layoutPreviews();
   render();
 }
 
-function usesWebcam() {
-  return app.active.preview === 'webcam' || Boolean(app.smooth[app.active.id]);
+const usesWebcam = (cam) => cam.preview === 'webcam' || Boolean(app.smooth[cam.id]);
+const visibleCams = () => (app.podcast ? app.cameras : [app.active]);
+
+// ---------------- Vista previa (una por cámara) ----------------
+// Cada cámara tiene su propio recuadro. Las webcams (Osmo, capturadora) quedan
+// abiertas aunque cambies de pestaña, para que una grabación en curso no se corte.
+app.tiles = {};
+app.streams = {};
+app.podcast = store.get('podcast', false);
+
+function tileFor(cam) {
+  if (app.tiles[cam.id]) return app.tiles[cam.id];
+  const el = document.createElement('div');
+  el.className = 'preview';
+  el.innerHTML = `<img alt="" hidden><video autoplay muted playsinline hidden></video><canvas></canvas>
+    <div class="preview-empty">Sin vista previa</div><span class="fps"></span><span class="tile-label"></span>`;
+  el.onclick = () => { if (app.podcast && app.active.id !== cam.id) selectCamera(cam.id); };
+  const t = { el, img: $('img', el), video: $('video', el), canvas: $('canvas', el), empty: $('.preview-empty', el), fps: $('.fps', el), label: $('.tile-label', el), mode: null };
+  app.tiles[cam.id] = t;
+  $('#previews').append(el);
+  return t;
 }
 
-// ---------------- Vista previa ----------------
-async function setupPreview() {
-  const img = $('#liveImg'); const video = $('#liveVideo');
-  app.stream?.getTracks().forEach((t) => t.stop());
-  app.stream = null;
-  img.hidden = true; video.hidden = true;
-  img.removeAttribute('src');
-  $('#fps').textContent = '';
-  $('#sourceBox').hidden = !usesWebcam();
-
-  if (!usesWebcam()) {
-    $('#previewEmpty').textContent = 'Conectando vista previa…';
-    img.onload = () => { $('#previewEmpty').textContent = ''; };
-    img.onerror = () => { $('#previewEmpty').textContent = 'Sin vista previa de la cámara'; };
-    img.src = `/api/camera/${app.active.id}/live?t=${Date.now()}`;
-    img.hidden = false;
-    $('#fps').textContent = app.active.driver === 'sony-wifi' ? 'Wi-Fi' : 'USB';
-    return;
+function layoutPreviews() {
+  const shown = new Set(visibleCams().map((c) => c.id));
+  $('#previews').classList.toggle('multi', shown.size > 1);
+  for (const cam of app.cameras) {
+    const t = tileFor(cam);
+    const visible = shown.has(cam.id);
+    t.el.hidden = !visible;
+    t.el.classList.toggle('selected', cam.id === app.active.id);
+    t.label.textContent = shown.size > 1 ? cam.name : '';
+    const mode = usesWebcam(cam) ? 'webcam' : 'mjpeg';
+    if (mode === 'mjpeg') {
+      stopWebcam(cam.id);
+      // El MJPEG solo se pide mientras se ve (comparte el USB con los ajustes).
+      if (visible && t.mode !== 'mjpeg') startMjpeg(cam, t);
+      if (!visible && t.mode === 'mjpeg') { t.img.removeAttribute('src'); t.img.hidden = true; t.mode = null; }
+    } else if (visible && !app.streams[cam.id]) {
+      startWebcam(cam, t);
+    }
   }
-  await startWebcam();
+  $('#sourceBox').hidden = !usesWebcam(app.active);
+  fillSources();
+  drawOverlay();
 }
 
-async function startWebcam() {
-  const video = $('#liveVideo');
-  const key = `source.${app.active.id}`;
-  let deviceId = store.get(key, null);
+function startMjpeg(cam, t) {
+  t.mode = 'mjpeg';
+  t.video.hidden = true;
+  t.empty.textContent = 'Conectando vista previa…';
+  t.img.onload = () => { t.empty.textContent = ''; };
+  t.img.onerror = () => { t.empty.textContent = 'Sin vista previa de la cámara'; };
+  t.img.src = `/api/camera/${cam.id}/live?t=${Date.now()}`;
+  t.img.hidden = false;
+  t.fps.textContent = cam.driver === 'sony-wifi' ? 'Wi-Fi' : 'USB';
+}
+
+function stopWebcam(id) {
+  if (app.recs[id]) return; // nunca cortar una grabación
+  app.streams[id]?.getTracks().forEach((tr) => tr.stop());
+  delete app.streams[id];
+}
+
+async function startWebcam(cam, t) {
+  t.mode = 'webcam';
+  t.img.hidden = true;
+  t.img.removeAttribute('src');
   if (!navigator.mediaDevices?.getUserMedia) {
-    $('#previewEmpty').textContent = 'El navegador no permite cámaras aquí (usa http://localhost o https).';
+    t.empty.textContent = 'El navegador no permite cámaras aquí (usa http://localhost).';
     return;
   }
+  let deviceId = store.get(`source.${cam.id}`, null);
+  const constraints = (id) => ({ video: { ...(id ? { deviceId: { exact: id } } : {}), width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }, audio: false });
   try {
-    const constraints = (id) => ({ video: { ...(id ? { deviceId: { exact: id } } : {}), width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia(constraints(deviceId)); } catch { stream = await navigator.mediaDevices.getUserMedia(constraints(null)); deviceId = null; }
-    const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
-    // Primera vez con la Osmo: intenta elegirla por nombre.
-    if (!deviceId && app.active.driver === 'dji-osmo') {
+    // Primera vez con la Osmo: la busca por nombre.
+    if (!deviceId && cam.driver === 'dji-osmo') {
+      const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
       const osmo = devices.find((d) => /osmo|dji/i.test(d.label));
       if (osmo) {
-        stream.getTracks().forEach((t) => t.stop());
+        stream.getTracks().forEach((tr) => tr.stop());
         stream = await navigator.mediaDevices.getUserMedia(constraints(osmo.deviceId));
+        store.set(`source.${cam.id}`, osmo.deviceId);
+      } else {
+        toast(`${cam.name}: no la encuentro. Ponla en modo "Cámara web" y elígela en "Fuente de video".`, true);
       }
     }
-    app.stream = stream;
-    video.srcObject = stream;
-    video.hidden = false;
-    $('#previewEmpty').textContent = '';
-    const current = stream.getVideoTracks()[0];
-    const s = current.getSettings();
-    $('#fps').textContent = `${s.width || ''}×${s.height || ''} · ${Math.round(s.frameRate || 0)} fps`;
-    const sel = $('#sourceSelect');
-    sel.innerHTML = '';
-    for (const d of devices) {
-      const o = new Option(d.label || `Cámara ${sel.length + 1}`, d.deviceId);
-      o.selected = d.deviceId === s.deviceId;
-      sel.append(o);
-    }
+    app.streams[cam.id] = stream;
+    t.video.srcObject = stream;
+    t.video.hidden = false;
+    if (t.empty.textContent.startsWith('Sin') || t.empty.textContent.startsWith('Conect')) t.empty.textContent = '';
+    const s = stream.getVideoTracks()[0].getSettings();
+    t.fps.textContent = `${s.width || ''}×${s.height || ''} · ${Math.round(s.frameRate || 0)} fps`;
+    fillSources();
   } catch (e) {
-    $('#previewEmpty').textContent = `No pude abrir la webcam/capturadora: ${e.message}`;
+    t.empty.textContent = `No pude abrir la webcam/capturadora: ${e.message}`;
   }
+}
+
+async function fillSources() {
+  if (!usesWebcam(app.active) || !navigator.mediaDevices?.enumerateDevices) return;
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+  const current = app.streams[app.active.id]?.getVideoTracks()[0]?.getSettings().deviceId;
+  const sel = $('#sourceSelect');
+  sel.innerHTML = '';
+  for (const d of devices) {
+    const o = new Option(d.label || `Cámara ${sel.length + 1}`, d.deviceId);
+    o.selected = d.deviceId === current;
+    sel.append(o);
+  }
+}
+
+function restartPreview(cam) {
+  if (app.recs[cam.id]) return toast('No se puede cambiar la fuente mientras graba', true);
+  stopWebcam(cam.id);
+  const t = tileFor(cam);
+  t.mode = null;
+  layoutPreviews();
 }
 
 $('#sourceSelect').onchange = (e) => {
   store.set(`source.${app.active.id}`, e.target.value);
-  setupPreview();
+  restartPreview(app.active);
 };
 $('#smoothBtn').onclick = () => {
   app.smooth[app.active.id] = !app.smooth[app.active.id];
   store.set('smooth', app.smooth);
   $('#smoothBtn').classList.toggle('on', app.smooth[app.active.id]);
-  setupPreview();
+  restartPreview(app.active);
+};
+$('#podcastBtn').onclick = () => {
+  app.podcast = !app.podcast;
+  store.set('podcast', app.podcast);
+  $('#podcastBtn').classList.toggle('on', app.podcast);
+  layoutPreviews();
+  render();
+};
+app.clap = store.get('clap', true);
+$('#clapBtn').classList.toggle('on', app.clap);
+$('#clapBtn').onclick = () => {
+  app.clap = !app.clap;
+  store.set('clap', app.clap);
+  $('#clapBtn').classList.toggle('on', app.clap);
 };
 
 // Superposiciones: cuadrícula, guías y recorte vertical.
 function drawOverlay() {
-  const c = $('#overlay');
+  for (const t of Object.values(app.tiles)) if (!t.el.hidden) drawOverlayOn(t.canvas);
+}
+
+function drawOverlayOn(c) {
   const r = c.getBoundingClientRect();
   c.width = r.width * devicePixelRatio; c.height = r.height * devicePixelRatio;
   const g = c.getContext('2d');
@@ -244,42 +320,95 @@ function buildSettings() {
 }
 
 // ---------------- Grabación ----------------
+app.recs = {}; // grabaciones en el navegador: id de cámara -> { recorder, since, file }
+app.lastFiles = {};
+
+const isRecording = (cam) => (cam.caps.record === 'browser' ? Boolean(app.recs[cam.id]) : Boolean(app.snapshot[cam.id]?.recording));
+const recordingSince = (cam) => (cam.caps.record === 'browser' ? app.recs[cam.id]?.since : app.snapshot[cam.id]?.recordingSince);
+
+async function setRecording(cam, start, session) {
+  if (isRecording(cam) === start) return;
+  if (cam.caps.record === 'browser') return start ? startLocalRecord(cam, session) : stopLocalRecord(cam);
+  if (!cam.caps.record) throw new Error(`${cam.name}: no permite grabar en remoto`);
+  const st = await api(`camera/${cam.id}/record`, { action: start ? 'start' : 'stop' });
+  app.snapshot[cam.id] = { ...app.snapshot[cam.id], ...st };
+}
+
 async function toggleRecord() {
-  if (app.active.caps.record === 'browser') return toggleLocalRecord();
-  if (!app.active.caps.record) return toast('Esta cámara no permite iniciar la grabación en remoto', true);
-  const st = await camApi('record', { action: 'toggle' });
-  app.snapshot[app.active.id] = { ...camState(), ...st };
+  const cams = app.podcast ? app.cameras.filter((c) => c.caps.record) : [app.active];
+  const start = !cams.some(isRecording);
+  const session = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+  const results = await Promise.allSettled(cams.map((c) => setRecording(c, start, session)));
+  const failed = results.map((r, i) => (r.status === 'rejected' ? `${cams[i].name}: ${r.reason.message}` : null)).filter(Boolean);
+  if (failed.length) toast(failed.join(' · '), true);
+  if (start && app.podcast && app.clap && failed.length < cams.length) setTimeout(clap, 1500);
   render();
 }
 
-// Grabación en el navegador (Osmo Action en modo webcam o cualquier capturadora).
-async function toggleLocalRecord() {
-  const L = app.local;
-  if (L.recorder) { L.recorder.stop(); return; }
-  if (!app.stream) return toast('Primero abre la vista previa de la cámara', true);
-  let audio = null;
-  try { audio = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { toast('Grabando sin audio (sin permiso de micrófono)'); }
-  const tracks = [...app.stream.getVideoTracks(), ...(audio ? audio.getAudioTracks() : [])];
-  const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t));
-  const rec = new MediaRecorder(new MediaStream(tracks), { mimeType: type, videoBitsPerSecond: 16e6 });
-  L.chunks = [];
-  rec.ondataavailable = (e) => e.data.size && L.chunks.push(e.data);
-  rec.onstop = () => {
-    audio?.getTracks().forEach((t) => t.stop());
-    const blob = new Blob(L.chunks, { type: rec.mimeType });
-    const a = document.createElement('a');
-    const ext = rec.mimeType.includes('mp4') ? 'mp4' : 'webm';
-    a.href = URL.createObjectURL(blob);
-    a.download = `${app.active.id}-${new Date().toISOString().replace(/[:.]/g, '-')}.${ext}`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    L.recorder = null; L.since = null;
-    render();
-  };
-  rec.start(1000);
-  L.recorder = rec; L.since = Date.now();
-  render();
+// Claqueta: pitido + destello para alinear los videos al editar.
+function clap() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 1000;
+    gain.gain.value = 0.6;
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.15);
+    setTimeout(() => ctx.close(), 500);
+  } catch { /* sin audio */ }
+  const f = $('#flash');
+  f.classList.add('on');
+  setTimeout(() => f.classList.remove('on'), 150);
 }
+
+// Grabación en el navegador (Osmo en modo webcam o capturadora): se va
+// guardando en el servidor por trozos, en la carpeta grabaciones/.
+async function startLocalRecord(cam, session) {
+  const stream = app.streams[cam.id];
+  if (!stream) throw new Error(`${cam.name}: primero abre su vista previa`);
+  let audio = null;
+  try { audio = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch { toast(`${cam.name}: grabando sin audio (sin permiso de micrófono)`); }
+  const tracks = [...stream.getVideoTracks(), ...(audio ? audio.getAudioTracks() : [])];
+  const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t));
+  const ext = type.includes('mp4') ? 'mp4' : 'webm';
+  const { id, file } = await api('recordings/start', { camera: cam.id, ext, session });
+  const rec = new MediaRecorder(new MediaStream(tracks), { mimeType: type, videoBitsPerSecond: 12e6 });
+  const entry = { recorder: rec, since: Date.now(), file, uploads: Promise.resolve(), failed: false };
+  rec.ondataavailable = (e) => {
+    if (!e.data.size) return;
+    entry.uploads = entry.uploads.then(() => fetch(`/api/recordings/${id}/chunk`, { method: 'POST', body: e.data }))
+      .then((r) => { if (!r.ok) throw new Error(r.status); })
+      .catch(() => { if (!entry.failed) toast(`${cam.name}: se perdió un trozo de la grabación`, true); entry.failed = true; });
+  };
+  entry.done = new Promise((resolve) => {
+    rec.onstop = async () => {
+      audio?.getTracks().forEach((t) => t.stop());
+      await entry.uploads;
+      const r = await api(`recordings/${id}/stop`, {}).catch(() => null);
+      if (r) {
+        app.lastFiles[cam.id] = [`${r.file} (${(r.size / 1e6).toFixed(0)} MB)`, ...(app.lastFiles[cam.id] || [])].slice(0, 5);
+        toast(`${cam.name}: guardado en ${r.file}`);
+      }
+      delete app.recs[cam.id];
+      render();
+      resolve();
+    };
+  });
+  rec.start(2000);
+  app.recs[cam.id] = entry;
+}
+
+async function stopLocalRecord(cam) {
+  const entry = app.recs[cam.id];
+  if (!entry) return;
+  entry.recorder.stop();
+  await entry.done;
+}
+
+// Evita cerrar la pestaña con una grabación del navegador en curso.
+addEventListener('beforeunload', (e) => { if (Object.keys(app.recs).length) { e.preventDefault(); e.returnValue = ''; } });
 
 $('#btnRec').onclick = toggleRecord;
 
@@ -294,7 +423,7 @@ $$('[data-zoom]').forEach((b) => {
   b.addEventListener('keyup', (e) => { if (e.key === 'Enter') stop(); });
 });
 $$('[data-focus]').forEach((b) => { b.onclick = () => camApi('focus', { action: b.dataset.focus }).catch(() => {}); });
-$('#reconnectBtn').onclick = async () => { await camApi('connect'); setupPreview(); toast('Reconectado'); };
+$('#reconnectBtn').onclick = async () => { await camApi('connect'); restartPreview(app.active); toast('Reconectado'); };
 
 // ---------------- Escenas (ajustes guardados) ----------------
 const DEFAULT_SCENES = [
@@ -339,7 +468,8 @@ function render() {
   for (const t of $$('.cam-tab')) {
     const s = app.snapshot[t.dataset.id] || {};
     const dot = $('.dot', t);
-    dot.className = `dot ${s.recording ? 'rec' : s.connected ? 'on' : ''}`;
+    const cam = app.cameras.find((c) => c.id === t.dataset.id);
+    dot.className = `dot ${cam && isRecording(cam) ? 'rec' : s.connected ? 'on' : ''}`;
     $('small', t).textContent = s.message || '';
   }
 
@@ -353,22 +483,28 @@ function render() {
     $$('button', el).forEach((b) => { b.disabled = !enabled; });
   }
 
-  // Grabación
-  const localRec = Boolean(app.local.recorder);
-  const recording = caps.record === 'browser' ? localRec : Boolean(st.recording);
-  const since = caps.record === 'browser' ? app.local.since : st.recordingSince;
+  // Grabación (en modo podcast, cualquier cámara grabando cuenta)
+  const recCams = app.podcast ? app.cameras : [app.active];
+  const recording = recCams.some(isRecording);
+  const starts = recCams.filter(isRecording).map(recordingSince).filter(Boolean);
+  const since = starts.length ? Math.min(...starts) : null;
   $('#btnRec').classList.toggle('recording', recording);
-  $('#recLabel').textContent = recording ? 'DETENER' : 'GRABAR';
+  $('#recLabel').textContent = recording ? 'DETENER' : app.podcast ? 'GRABAR TODAS' : 'GRABAR';
   $('#recBadge').hidden = !recording;
   $('#recTime').textContent = since ? mmss((Date.now() - since) / 1000) : '0:00';
+  for (const cam of app.cameras) {
+    const t = app.tiles[cam.id];
+    if (t) t.label.innerHTML = app.podcast ? `${escapeHtml(cam.name)}${isRecording(cam) ? '<span class="rec">● REC</span>' : ''}` : '';
+  }
   $('#zoomPos').textContent = st.zoom || '—';
 
   // Panel de estado
   $('#stModel').textContent = st.model || app.active.name;
   $('#stLens').textContent = st.lens || '';
   const stateEl = $('#stState');
-  stateEl.textContent = !st.connected ? 'Sin conexión' : recording ? 'Grabando' : 'Lista';
-  stateEl.classList.toggle('rec', recording);
+  const activeRec = isRecording(app.active);
+  stateEl.textContent = !st.connected ? 'Sin conexión' : activeRec ? 'Grabando' : 'Lista';
+  stateEl.classList.toggle('rec', activeRec);
   $('#stMsg').textContent = st.message || '';
 
   const sto = st.storage;
@@ -391,7 +527,8 @@ function render() {
     : caps.record === 'browser' ? 'Ajustes fijados en la propia cámara' : '—';
   const clips = $('#stClips');
   clips.innerHTML = '';
-  for (const c of st.lastClips?.length ? st.lastClips : ['Sin clips']) clips.append(Object.assign(document.createElement('li'), { textContent: c }));
+  const clipList = caps.record === 'browser' ? app.lastFiles[app.active.id] : st.lastClips;
+  for (const c of clipList?.length ? clipList : ['Sin clips']) clips.append(Object.assign(document.createElement('li'), { textContent: c }));
 }
 setInterval(() => app.active && render(), 1000);
 
@@ -563,10 +700,10 @@ function toImageData(source) {
 }
 
 function grabLive() {
-  const video = $('#liveVideo'); const img = $('#liveImg');
-  if (!video.hidden && video.videoWidth) return toImageData(video);
-  if (!img.hidden && img.naturalWidth) return toImageData(img);
-  throw new Error('No hay vista previa para medir');
+  const t = app.tiles[app.active.id];
+  if (t && !t.video.hidden && t.video.videoWidth) return toImageData(t.video);
+  if (t && !t.img.hidden && t.img.naturalWidth) return toImageData(t.img);
+  throw new Error('No hay vista previa de la cámara seleccionada para medir');
 }
 
 function drawZones(canvas, imageData) {

@@ -11,14 +11,14 @@
     <!-- ============ COLUMNA IZQUIERDA: cámara ============ -->
     <section class="col col-camera">
       <nav class="cam-tabs" id="camTabs"></nav>
+      <div class="podcast-bar" id="podcastBar" hidden>
+        <button class="btn toggle" id="podcastBtn" title="Ver y grabar todas las cámaras a la vez">🎙 Modo podcast (todas las cámaras)</button>
+        <button class="btn toggle small" id="clapBtn" title="Pitido y destello al iniciar para sincronizar en la edición">Claqueta</button>
+      </div>
 
-      <div class="preview" id="preview">
-        <img id="liveImg" alt="" hidden>
-        <video id="liveVideo" autoplay muted playsinline hidden></video>
-        <canvas id="overlay"></canvas>
-        <div class="preview-empty" id="previewEmpty">Sin vista previa</div>
-        <span class="fps" id="fps"></span>
+      <div class="previews" id="previews">
         <span class="rec-badge" id="recBadge" hidden>● REC <b id="recTime">0:00</b></span>
+        <div class="flash" id="flash"></div>
       </div>
 
       <div class="row">
