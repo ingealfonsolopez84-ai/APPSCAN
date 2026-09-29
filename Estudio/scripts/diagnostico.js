@@ -32,7 +32,9 @@ function gp(argv, { binary = false, timeout = 20000 } = {}) {
   });
 }
 
+let driver = null;
 async function finish(code = 0) {
+  driver?.close?.();
   await fs.writeFile(REPORT, `${lines.join('\n')}\n`);
   console.log(`\n📄 Reporte guardado en: ${REPORT}`);
   console.log('   Copia su contenido y pégalo en el chat con Claude.');
@@ -121,7 +123,7 @@ if (all.err) {
 // 5. Driver del portal
 log('');
 log('5) Driver del portal (sony-usb)');
-const driver = new Gphoto2Driver({ id: 'zv-e10', driver: 'sony-usb' });
+driver = new Gphoto2Driver({ id: 'zv-e10', driver: 'sony-usb' });
 await driver.connect();
 if (!driver.state.connected) {
   fail(driver.state.message);

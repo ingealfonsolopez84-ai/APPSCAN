@@ -75,7 +75,13 @@ La ZV-E10 se controla por **USB** (no tiene la API Wi-Fi antigua).
    cp config.zv-e10.json estudio.config.json
    npm start
    ```
-4. **Consejos**
+4. **Lo que se sabe de la ZV-E10** (probado con firmware 2.02)
+   - El portal mantiene **una sola sesión USB abierta** (`gphoto2 --shell`). Abrir una sesión por comando no funciona bien: la cámara ignora cambios y devuelve valores incompletos.
+   - Funcionan: ISO, velocidad, apertura, balance en Kelvin (el portal activa "Temperatura de color" solo), modo de enfoque, grabar, batería, tiempo restante de grabación y vista previa (~10 fps).
+   - La **compensación de exposición** solo está disponible con **ISO Auto** (así funciona el modo M de Sony).
+   - El **zoom motorizado** del lente de kit no se puede controlar por gphoto2.
+   - Al conectar, la cámara tarda unos segundos en reportar la apertura y la velocidad; el portal las vuelve a leer solo.
+5. **Consejos**
    - La ZV-E10 gasta batería rápido: usa un adaptador de batería falsa (NP-FW50) o alimentación USB.
    - Vista fluida: sal por el micro-HDMI a una capturadora y desactiva *Visualización info. HDMI* para tener imagen limpia.
    - Cierra el portal antes de correr el diagnóstico (el USB solo admite un programa a la vez).

@@ -94,6 +94,7 @@ await sleep(1500);
 const p0 = Date.now();
 for (let i = 0; i < 5; i++) {
   buffer = '';
+  await fs.rm(path.join(work, 'capture_preview.jpg'), { force: true });
   send('capture-preview');
   for (let j = 0; j < 50 && !/Saving|saved|capture_preview/i.test(buffer); j++) await sleep(100);
 }

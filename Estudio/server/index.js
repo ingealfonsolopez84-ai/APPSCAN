@@ -32,13 +32,22 @@ async function loadConfig() {
 const config = await loadConfig();
 const cameras = new Map();
 for (const c of config.cameras) cameras.set(c.id, createDriver(c));
-await Promise.all([...cameras.values()].map((d) => d.connect().catch((e) => { d.state.message = e.message; })));
+// Conectamos en segundo plano para que el portal abra de inmediato.
+for (const d of cameras.values()) {
+  d.state.message = 'Conectando…';
+  d.connecting = d.connect()
+    .catch((e) => { d.state.message = e.message; })
+    .finally(() => {
+      d.connecting = null;
+      console.log(`   • ${d.name} [${d.config.driver}] → ${d.state.message}`);
+    });
+}
 
 // Refresco periódico del estado de cada cámara (sin solapar llamadas).
 for (const d of cameras.values()) {
   let busy = false;
   setInterval(async () => {
-    if (busy) return;
+    if (busy || d.connecting) return;
     busy = true;
     try {
       if (!d.state.connected && d.config.driver !== 'mock') await d.connect();
@@ -207,7 +216,13 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, () => {
+    for (const d of cameras.values()) d.close?.();
+    setTimeout(() => process.exit(0), 300);
+  });
+}
+
 server.listen(PORT, HOST, () => {
   console.log(`🎬 Estudio listo en http://localhost:${PORT}`);
-  for (const d of cameras.values()) console.log(`   • ${d.name} [${d.config.driver}] → ${d.state.message}`);
 });

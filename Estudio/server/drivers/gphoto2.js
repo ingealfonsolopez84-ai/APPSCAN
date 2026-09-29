@@ -1,13 +1,16 @@
 import { execFile } from 'node:child_process';
 import { CameraDriver } from './base.js';
+import { GphotoShell } from './gphoto2-shell.js';
 
 // Sony (y muchas otras marcas) por USB usando gphoto2.
 //
 // Requisitos: gphoto2 instalado (macOS: `brew install gphoto2`) y la cámara
 // en modo USB "Control remoto PC" / "PC Remote".
 //
-// gphoto2 solo permite un proceso a la vez sobre el USB, así que TODOS los
-// comandos (ajustes, grabación y frames de vista previa) pasan por una cola.
+// Por defecto usa una sesión continua (`gphoto2 --shell`): con la ZV-E10 es la
+// única forma fiable de cambiar ajustes, y la vista previa sube de ~2 a ~10 fps.
+// Con "useShell": false en la configuración vuelve a un proceso por comando.
+// En ambos modos los comandos pasan por una cola (el USB admite uno a la vez).
 
 // Nombres de configuración que usan distintas cámaras para cada ajuste.
 const ALIASES = {
@@ -82,9 +85,41 @@ export class Gphoto2Driver extends CameraDriver {
     this.port = config.port; // p.ej. "usb:020,007" si hay varias cámaras
     this.queue = Promise.resolve();
     this.names = {}; // ajuste lógico -> nombre real en la cámara
+    this.shell = config.useShell === false ? null : new GphotoShell({ bin: this.bin, port: this.port, env: GP_ENV });
   }
 
+  // Traduce los argumentos estilo línea de comandos a comandos del shell.
+  async runShell(args) {
+    if (args[0] === '--capture-preview') return this.shell.preview();
+    if (args[0] === '--list-config') return this.shell.exec('list-config');
+    if (args[0] === '--storageinfo') throw new Error('storageinfo no disponible en sesión continua');
+    let out = '';
+    for (let i = 0; i < args.length; i += 2) {
+      const flag = args[i];
+      if (flag !== '--get-config' && flag !== '--set-config') throw new Error(`Comando no soportado: ${flag}`);
+      if (flag === '--set-config') {
+        out += await this.shell.exec(`set-config ${args[i + 1]}`);
+        continue;
+      }
+      // Si una lectura falla seguimos con las demás (un bloque vacío mantiene el orden).
+      out += await this.shell.exec(`get-config ${args[i + 1]}`)
+        .catch(() => '\nLabel: (error)\nReadonly: 1\nType: RADIO\nCurrent: (null)\nEND\n');
+    }
+    return out;
+  }
+
+  close() { this.shell?.close(); }
+
   run(args, { binary = false, timeout = 15000 } = {}) {
+    if (this.shell) {
+      return this.runShell(args).catch(async (e) => {
+        // En macOS ptpcamerad puede volver a tomar la cámara: la liberamos y reintentamos.
+        if (process.platform !== 'darwin' || !/claim|busy|lock|cerró/i.test(e.message)) throw e;
+        this.shell.close();
+        await releaseMacPtp();
+        return this.runShell(args);
+      });
+    }
     const full = [...(this.port ? ['--port', this.port] : []), ...args];
     const job = () => new Promise((resolve, reject) => {
       execFile(this.bin, full, { encoding: binary ? 'buffer' : 'utf8', timeout, maxBuffer: 32 * 1024 * 1024, env: GP_ENV },
@@ -123,8 +158,16 @@ export class Gphoto2Driver extends CameraDriver {
       this.caps.record = Boolean(this.names.movie);
       this.state.connected = true;
       this.state.message = 'Lista para grabar';
+      // La Sony va entregando sus ajustes poco a poco al abrir la sesión; los
+      // valores incompletos se corrigen solos en los siguientes refrescos.
+      if (this.shell) await new Promise((r) => setTimeout(r, 2500));
       await this.refresh(true);
+      for (let i = 0; i < 3 && this.hasIncomplete(); i++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        await this.refresh();
+      }
     } catch (e) {
+      this.shell?.close();
       this.state.connected = false;
       this.state.message = `No encuentro la cámara por USB: ${e.message}`;
     }
@@ -146,7 +189,11 @@ export class Gphoto2Driver extends CameraDriver {
         const b = blocks[this.names[key]];
         if (!b) continue;
         const choices = b.choices.length ? b.choices : rangeChoices(b);
-        this.state.settings[key] = { value: b.current, choices, readonly: b.readonly === '1' };
+        // Al abrir sesión la Sony a veces reporta "(null)" o una sola opción: lo ignoramos.
+        const incomplete = b.current === '(null)' || (b.type === 'RADIO' && choices.length < 2);
+        const stored = this.state.settings[key];
+        if (incomplete && stored && stored.value !== '(null)') continue;
+        this.state.settings[key] = { value: b.current, choices, readonly: b.readonly === '1' || incomplete };
       }
       // En Sony los Kelvin son de solo lectura hasta elegir el modo "temperatura de
       // color"; applySetting lo cambia solo, así que el ajuste sí es editable.
@@ -177,13 +224,17 @@ export class Gphoto2Driver extends CameraDriver {
         const lens = blocks[this.names.lens];
         if (model) this.state.model = model.current;
         if (lens) this.state.lens = lens.current;
-        if (!this.state.storage) await this.refreshStorage();
+        if (!this.state.storage && !this.shell) await this.refreshStorage();
       }
     } catch (e) {
       this.state.message = `Error leyendo ajustes: ${e.message}`;
       if (/claim|not found|No camera/i.test(e.message)) this.state.connected = false;
     }
     return this.state;
+  }
+
+  hasIncomplete() {
+    return Object.values(this.state.settings).some((st) => st.value === '(null)' || st.choices.length < 2);
   }
 
   parseMulti(out, names) {

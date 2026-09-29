@@ -11,7 +11,7 @@ const SETTING_ORDER = ['iso', 'aperture', 'shutter', 'wb', 'ev'];
 const LABELS = { iso: 'ISO', aperture: 'Apertura', shutter: 'Velocidad', wb: 'Balance', ev: 'Compens.' };
 const fmt = {
   iso: (v) => v,
-  aperture: (v) => (v ? `f${String(v).replace(/^f\/?/, '')}` : '—'),
+  aperture: (v) => (v && v !== '(null)' ? `f${String(v).replace(/^f\/?/, '')}` : '—'),
   shutter: (v) => v,
   wb: (v) => (v ? `${v}K` : '—'),
   ev: (v) => v,
