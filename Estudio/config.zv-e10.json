@@ -1,0 +1,18 @@
+{
+  "refreshMs": 2000,
+  "cameras": [
+    {
+      "id": "zv-e10",
+      "name": "Sony ZV-E10",
+      "driver": "sony-usb",
+      "bitrateMbps": 100,
+      "maxPreviewFps": 10,
+      "previewSource": "camera"
+    },
+    {
+      "id": "osmo",
+      "name": "DJI Osmo Action",
+      "driver": "dji-osmo"
+    }
+  ]
+}

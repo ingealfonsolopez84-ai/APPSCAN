@@ -53,6 +53,33 @@ npm start
 
 Si tienes varias cámaras por USB, añade `"port": "usb:020,007"` (lo muestra `gphoto2 --auto-detect`).
 
+### Sony ZV-E10 paso a paso
+
+La ZV-E10 se controla por **USB** (no tiene la API Wi-Fi antigua).
+
+1. **En la cámara**
+   - MENU → Configuración (maletín) → **Conexión USB → Control remoto PC**. Si tu firmware tiene *Función control remoto PC*, actívala.
+   - Pon el botón de modo en **video** y la exposición en **Exposición manual (M)**. En modo P/A/S la cámara no deja cambiar ISO, apertura y velocidad desde fuera.
+   - Deja una tarjeta SD dentro: la grabación va a la tarjeta.
+   - **No** uses *Transmisión USB* (modo webcam): en ese modo no se puede controlar.
+2. **En la Mac**
+   ```bash
+   brew install gphoto2
+   cd Estudio
+   npm run diagnostico
+   ```
+   Genera `diagnostico-camara.txt` con lo que detectó. Para probar también cambiar ISO y grabar un clip de 3 s:
+   `npm run diagnostico -- --escribir --grabar`
+3. **Usar el portal**
+   ```bash
+   cp config.zv-e10.json estudio.config.json
+   npm start
+   ```
+4. **Consejos**
+   - La ZV-E10 gasta batería rápido: usa un adaptador de batería falsa (NP-FW50) o alimentación USB.
+   - Vista fluida: sal por el micro-HDMI a una capturadora y desactiva *Visualización info. HDMI* para tener imagen limpia.
+   - Cierra el portal antes de correr el diagnóstico (el USB solo admite un programa a la vez).
+
 ### Sony por Wi-Fi
 
 Activa en la cámara "Control con smartphone", conecta la computadora a la red Wi-Fi de la cámara y usa el driver `sony-wifi`. Los modelos nuevos (a7 IV, ZV-E10 II, a6700…) **no** tienen esta API por Wi-Fi: con ellos usa USB.

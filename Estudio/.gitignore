@@ -1,3 +1,5 @@
 node_modules/
 data/
 estudio.config.json
+diagnostico-camara.txt
+diagnostico-preview.jpg

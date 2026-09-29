@@ -57,6 +57,11 @@ function rangeChoices(block) {
   return out;
 }
 
+// En macOS el sistema "secuestra" la cámara por PTP; hay que liberarla.
+export function releaseMacPtp() {
+  return new Promise((r) => execFile('killall', ['ptpcamerad', 'PTPCamera'], () => setTimeout(r, 300)));
+}
+
 export class Gphoto2Driver extends CameraDriver {
   constructor(config) {
     super(config);
@@ -78,16 +83,19 @@ export class Gphoto2Driver extends CameraDriver {
           } else resolve(stdout);
         });
     });
-    const p = this.queue.then(job, job);
+    // En macOS ptpcamerad vuelve a tomar la cámara: lo cerramos y reintentamos una vez.
+    const withRetry = () => job().catch(async (e) => {
+      if (process.platform !== 'darwin' || !/claim|busy|Could not lock/i.test(e.message)) throw e;
+      await releaseMacPtp();
+      return job();
+    });
+    const p = this.queue.then(withRetry, withRetry);
     this.queue = p.catch(() => {});
     return p;
   }
 
   async connect() {
-    if (process.platform === 'darwin') {
-      // En macOS el sistema "secuestra" la cámara por PTP; hay que liberarla.
-      await new Promise((r) => execFile('killall', ['ptpcamerad', 'PTPCamera'], () => r()));
-    }
+    if (process.platform === 'darwin') await releaseMacPtp();
     try {
       const list = await this.run(['--list-config']);
       const available = new Set(list.split('\n').map((l) => l.trim().split('/').pop()).filter(Boolean));
